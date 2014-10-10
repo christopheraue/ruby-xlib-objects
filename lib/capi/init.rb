@@ -5,5 +5,6 @@ module Xlib::Capi
   ffi_lib 'X11'
 end
 
+require_relative 'constants'
 require_relative 'types'
 require_relative 'functions'

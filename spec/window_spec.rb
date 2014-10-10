@@ -96,9 +96,9 @@ describe Xlib::Window do
   end
 
   describe '#properties' do
-    it 'returns an array with all set properties' do
+    it 'returns a hash with all set properties' do
       # given
-      prop_list = build_list(:property, 3)
+      prop_list = { prop1: 'prop1 value', prop2: 'prop2 value', prop3: 'prop3 value'}
       allow(Xlib::Window::Property).to receive(:all).with(subject).
         and_return(prop_list)
 
@@ -113,15 +113,123 @@ describe Xlib::Window do
   describe '#property' do
     it 'returns the value for a specific property' do
       # given
-      prop = build(:property)
-      allow(Xlib::Window::Property).to receive(:get).with(subject, prop.name).
-        and_return(prop)
+      prop_name  = 'prop name'
+      prop_value = 'prop value'
+      allow(Xlib::Window::Property).to receive(:get).with(subject, prop_name).
+        and_return(prop_value)
 
       # when
-      prop_value = subject.property(prop.name)
+      prop = subject.property(prop_name)
 
       # then
-      expect(prop_value).to eq(prop.value)
+      expect(prop).to eq(prop_value)
+    end
+  end
+
+  describe '#listen_to' do
+    context 'The given event mask is invalid' do
+      it 'fails' do
+        expect { subject.listen_to(:invalid_mask) }.to raise_error
+      end
+    end
+
+    context 'The given event mask is valid' do
+      it 'lets the window listen to an event mask' do
+        # then
+        expect(Xlib::Capi).to receive(:XSelectInput).with(
+          subject.display.to_native,
+          subject.to_native,
+          Xlib::Capi::EVENT_MASK[:property_change]
+        )
+
+        # when
+        returned = subject.listen_to :property_change
+
+        # then
+        expect(returned).to be(subject)
+      end
+
+      it 'adds to the event mask on a subsequent call' do
+        # given
+        subject.listen_to :property_change do |event| event end
+
+        # then
+        expect(Xlib::Capi).to receive(:XSelectInput).with(
+          subject.display.to_native,
+          subject.to_native,
+          Xlib::Capi::EVENT_MASK[:property_change] | Xlib::Capi::EVENT_MASK[:structure_notify]
+        )
+
+        # when
+        subject.listen_to :structure_notify do |event| event end
+      end
+    end
+  end
+
+  describe '#turn_deaf_on' do
+    context 'The given event mask is invalid' do
+      it 'fails' do
+        expect { subject.turn_deaf_on(:invalid_mask) }.to raise_error
+      end
+    end
+
+    context 'The given event mask is valid' do
+      it 'discontinues listening to the given event_mask' do
+        # given
+        subject.listen_to :property_change do |event| event end
+        subject.listen_to :structure_notify do |event| event end
+
+        # then
+        expect(Xlib::Capi).to receive(:XSelectInput).with(
+          subject.display.to_native,
+          subject.to_native,
+          Xlib::Capi::EVENT_MASK[:structure_notify]
+        )
+
+        # when
+        returned = subject.turn_deaf_on :property_change
+
+        # then
+        expect(returned).to be(subject)
+      end
+    end
+  end
+
+  describe '#on' do
+    context 'The given event is invalid' do
+      it 'fails' do
+        expect { subject.on(:invalid_event) }.to raise_error
+      end
+    end
+
+    it 'registers a handler for the event and returns self' do
+      # when
+      ret = subject.on(:property_notify) do; end
+
+      # then
+      expect(ret).to be(subject)
+    end
+  end
+
+  describe '#handle' do
+    let(:event) { Xlib::Event.new(build(:x_event, window: subject)) }
+
+    context 'no event handler registered' do
+      it 'does nothing' do
+        expect { subject.handle(event) }.not_to raise_error
+      end
+    end
+
+    it 'executes the event handler' do
+      # given
+      block = lambda{}
+      subject.on(:property_notify, &block)
+
+      # then
+      expect(block).to receive(:call)
+
+      # when
+      subject.handle(event)
     end
   end
 end

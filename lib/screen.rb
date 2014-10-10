@@ -16,5 +16,12 @@ module Xlib
       window_id = Capi::XRootWindowOfScreen(self.to_native)
       Xlib::Window.new(self, window_id)
     end
+
+    def client_windows
+      window_ids = root_window.property(:_NET_CLIENT_LIST)
+      window_ids.map do |win_id|
+        Xlib::Window.new(self, win_id)
+      end
+    end
   end
 end

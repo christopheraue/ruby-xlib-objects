@@ -1,6 +1,4 @@
 describe Xlib::Window::Property do
-  let(:subject) { build(:property) }
-
   describe '.get' do
     it 'requests property data from the X server and maps it to an instance' do
       window = build(:window)
@@ -20,30 +18,6 @@ describe Xlib::Window::Property do
         expect(name).to be_a(Symbol)
         expect(value).not_to be(nil)
       end
-    end
-  end
-
-  describe '#to_native' do
-    it 'returns its pointer' do
-      expect(subject.to_native).to be_a(FFI::Pointer)
-    end
-  end
-
-  describe '#window' do
-    it 'returns its window' do
-      expect(subject.window).to be_a(Xlib::Window)
-    end
-  end
-
-  describe '#name' do
-    it 'returns its name' do
-      expect(subject.name).to eq('prop_name')
-    end
-  end
-
-  describe '#value' do
-    it 'returns its value' do
-      expect(subject.value).to eq('prop_value')
     end
   end
 end

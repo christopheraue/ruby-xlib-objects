@@ -8,6 +8,17 @@ module Xlib
 
         new(display_pointer)
       end
+
+      def names
+        Dir['/tmp/.X11-unix/*'].map do |file_name|
+          match = file_name.match(/X(\d+)$/)
+          ":#{match[1]}" if match
+        end
+      end
+
+      def all
+        names.map { |name| open(name) }
+      end
     end
 
     def initialize(display_pointer)
@@ -24,6 +35,16 @@ module Xlib
 
     def screens
       read_screens
+    end
+
+    def handle_next_event
+      x_event = Xlib::Capi::XEvent.new
+      Xlib::Capi::XNextEvent(self.to_native, x_event) # blocks
+      event = Xlib::Event.new(x_event)
+
+      handling_window = Xlib::Window.get(
+        event[:event] || event[:parent] || event[:window])
+      handling_window.handle(event) if handling_window
     end
 
     private

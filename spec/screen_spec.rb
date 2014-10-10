@@ -17,6 +17,14 @@ describe Xlib::Screen do
   end
 
   describe '#client_windows' do
-    it 'returns all top-level client windows'
+    it 'returns all top-level client windows' do
+      # when
+      clients = subject.client_windows
+
+      expect(clients).to be_a(Array)
+      clients.each do |client|
+        expect(client).to be_a(Xlib::Window)
+      end
+    end
   end
 end

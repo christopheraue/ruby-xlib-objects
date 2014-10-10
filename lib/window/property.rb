@@ -1,5 +1,5 @@
 module Xlib
-  class Window::Property
+  module Window::Property
     class << self
       def get(window, name)
         # request data
@@ -11,7 +11,7 @@ module Xlib
         data_offset = 0           # data offset
         data_max_length = 2**16   # max data length, multiple of 32 bit
         allow_deleted = false     # don't retrieve deleted properties
-        requested_type = 0        # AnyPropertyType
+        requested_type = Capi::ANY_PROPERTY_TYPE
 
         # response data
         pointer     = FFI::MemoryPointer.new :pointer
@@ -110,7 +110,7 @@ module Xlib
                     when :ATOM        then 'L!'
                     when :INTEGER     then 'i!'
                     when :WINDOW      then 'L!'
-                    else return ['not supported']
+                    else return ['Query handler not implemented for this property type.']
                     end
 
         slice_size = data.bytes.length / data_options[:item_count]
@@ -129,19 +129,6 @@ module Xlib
           32 => :long
         }[item_size])
       end
-    end
-
-    attr_reader :window, :name, :value
-
-    def initialize(window, property)
-      @window = window
-      @pointer = property[:pointer]
-      @name = property[:name]
-      @value = property[:value]
-    end
-
-    def to_native
-      @pointer
     end
   end
 end
