@@ -222,7 +222,7 @@ describe Xlib::Window do
 
     it 'executes the event handler' do
       # given
-      block = lambda{}
+      block = lambda{|event|}
       subject.on(:property_notify, &block)
 
       # then

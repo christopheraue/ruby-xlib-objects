@@ -42,7 +42,7 @@ module Xlib
       Xlib::Capi::XNextEvent(self.to_native, x_event) # blocks
       event = Xlib::Event.new(x_event)
 
-      handling_window = Xlib::Window.get(
+      handling_window = Xlib::Window.new(self,
         event[:event] || event[:parent] || event[:window])
       handling_window.handle(event) if handling_window
     end
@@ -53,7 +53,7 @@ module Xlib
     end
 
     def read_screen(number)
-      Screen.new(self, screen_pointer(number), number)
+      Screen.new(self, screen_pointer(number))
     end
 
     def read_screens

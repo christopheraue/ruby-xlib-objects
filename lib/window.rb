@@ -1,20 +1,22 @@
 module Xlib
   class Window
     class << self
-      def new(screen, window_id)
+      def new(display, window_id, options = {cached: true})
         @windows ||= {}
-        @windows[window_id] = super
-      end
+        @windows[display.name] ||= {}
 
-      def get(window_id)
-        @windows[window_id]
+        if options[:cached]
+          @windows[display.name][window_id] ||= super(display, window_id)
+        else
+          @windows[display.name][window_id] = super(display, window_id)
+        end
       end
     end
 
-    attr_reader :screen
+    attr_reader :display
 
-    def initialize(screen, window_id)
-      @screen = screen
+    def initialize(display, window_id)
+      @display = display
       @native = window_id
       @event_mask = 0
       @event_handler = {}
@@ -48,8 +50,8 @@ module Xlib
       attributes[:map_state] == 'IsViewable'
     end
 
-    def display
-      screen.display
+    def screen
+      Xlib::Screen.new(display, attributes[:screen])
     end
 
     def property(name)
