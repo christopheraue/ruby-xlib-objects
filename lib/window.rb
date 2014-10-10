@@ -42,12 +42,16 @@ module Xlib
       attributes[:height]
     end
 
+    def map_state
+      Capi::MAP_STATE[attributes[:map_state]]
+    end
+
     def mapped?
-      attributes[:map_state] != 'IsUnmapped'
+      map_state != 'IsUnmapped'
     end
 
     def visible?
-      attributes[:map_state] == 'IsViewable'
+      map_state == 'IsViewable'
     end
 
     def screen

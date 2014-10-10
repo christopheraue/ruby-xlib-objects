@@ -3,6 +3,12 @@ module Xlib::Capi
   PROPERTY_NEW_VALUE = 0
   PROPERTY_DELETE = 1
 
+  MAP_STATE = {
+    0 => 'IsUnmapped',
+    1 => 'IsUnviewable',
+    2 => 'IsViewable'
+  }
+
   EVENT_MASK = {
     no_event:              0,
     key_press:             2**0,

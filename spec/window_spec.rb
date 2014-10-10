@@ -35,12 +35,19 @@ describe Xlib::Window do
     end
   end
 
+  describe '#map_state' do
+    it 'returns the map state' do
+      map_state = subject.map_state
+      expect(map_state).to be_a(String)
+    end
+  end
+
   describe '#mapped?' do
     context 'map_state is not "IsUnmapped"' do
       it 'returns true' do
         #given
         allow(subject).to receive(:attributes).
-          and_return({ map_state: 'IsViewable' })
+          and_return({ map_state: 2})
 
         #when/then
         expect(subject.mapped?).to be(true)
@@ -51,7 +58,7 @@ describe Xlib::Window do
       it 'returns false' do
         #given
         allow(subject).to receive(:attributes).
-          and_return({ map_state: 'IsUnmapped' })
+          and_return({ map_state: 0 })
 
         #when/then
         expect(subject.mapped?).to be(false)
@@ -64,7 +71,7 @@ describe Xlib::Window do
       it 'returns true' do
         #given
         allow(subject).to receive(:attributes).
-          and_return({ map_state: 'IsViewable' })
+          and_return({ map_state: 2 })
 
         #when/then
         expect(subject.visible?).to be(true)
@@ -75,7 +82,7 @@ describe Xlib::Window do
       it 'returns false' do
         #given
         allow(subject).to receive(:attributes).
-          and_return({ map_state: 'IsUnviewable' })
+          and_return({ map_state: 1 })
 
         #when/then
         expect(subject.visible?).to be(false)
