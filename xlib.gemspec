@@ -7,4 +7,6 @@ Gem::Specification.new do |s|
   s.summary      = 'xlib wrapper'
   s.files        = Dir.glob('lib/**/*.rb')
   s.require_path = 'lib'
+
+  s.add_dependency 'ffi'
 end
