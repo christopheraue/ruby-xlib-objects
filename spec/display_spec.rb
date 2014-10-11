@@ -78,5 +78,11 @@ describe Xlib::Display do
     describe '#handle_next_event' do
       it 'works'
     end
+
+    describe '#file_descriptor' do
+      it 'returns the display\'s file descriptor' do
+        expect(subject.file_descriptor).to be_a(Integer)
+      end
+    end
   end
 end

@@ -37,17 +37,33 @@ module Xlib
       read_screens
     end
 
-    def handle_next_event
-      x_event = Xlib::Capi::XEvent.new
-      Xlib::Capi::XNextEvent(self.to_native, x_event) # blocks
-      event = Xlib::Event.new(x_event)
+    def file_descriptor
+      Xlib::Capi::XConnectionNumber(self.to_native)
+    end
 
-      handling_window = Xlib::Window.new(self,
-        event[:event] || event[:parent] || event[:window])
-      handling_window.handle(event) if handling_window
+    def handle_events
+      while pending_events > 0
+        handle_event(next_event)
+      end
     end
 
     private
+    def pending_events
+      Xlib::Capi::XPending(self.to_native)
+    end
+
+    def next_event
+      x_event = Xlib::Capi::XEvent.new
+      Xlib::Capi::XNextEvent(self.to_native, x_event) # blocks
+      Xlib::Event.new(x_event)
+    end
+
+    def handle_event(event)
+      handling_window_id = event[:event] || event[:parent] || event[:window]
+      handling_window = Xlib::Window.new(self, handling_window_id)
+      handling_window.handle(event) if handling_window
+    end
+
     def screen_pointer(number)
       @struct[:screens] + (number * Capi::Screen.size)
     end
