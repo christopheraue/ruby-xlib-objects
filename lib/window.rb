@@ -42,6 +42,14 @@ module Xlib
       attributes[:height]
     end
 
+    def map
+      Xlib::Capi.XMapWindow(display.to_native, to_native)
+    end
+
+    def unmap
+      Xlib::Capi.XUnmapWindow(display.to_native, to_native)
+    end
+
     def map_state
       Capi::MAP_STATE[attributes[:map_state]]
     end
@@ -70,7 +78,7 @@ module Xlib
       raise "Unknown event #{event_mask}." unless Capi::EVENT_MASK[event_mask]
 
       @event_mask |= Capi::EVENT_MASK[event_mask]
-      Xlib::Capi.XSelectInput(display.to_native, self.to_native, @event_mask)
+      Xlib::Capi.XSelectInput(display.to_native, to_native, @event_mask)
       self
     end
 
@@ -78,7 +86,7 @@ module Xlib
       raise "Unknown event #{event_mask}." unless Capi::EVENT_MASK[event_mask]
 
       @event_mask &= ~Capi::EVENT_MASK[event_mask]
-      Xlib::Capi.XSelectInput(display.to_native, self.to_native, @event_mask)
+      Xlib::Capi.XSelectInput(display.to_native, to_native, @event_mask)
       self
     end
 
@@ -96,7 +104,7 @@ module Xlib
     private
     def attributes
       attributes = Capi::WindowAttributes.new
-      Capi::XGetWindowAttributes(display.to_native, self.to_native, attributes.pointer)
+      Capi::XGetWindowAttributes(display.to_native, to_native, attributes.pointer)
       attributes
     end
   end

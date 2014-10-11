@@ -35,6 +35,28 @@ describe Xlib::Window do
     end
   end
 
+  describe '#map' do
+    it 'maps the window' do
+      # then
+      expect(Xlib::Capi).to receive(:XMapWindow).
+        with(subject.display.to_native, subject.to_native)
+
+      # when
+      subject.map
+    end
+  end
+
+  describe '#unmap' do
+    it 'unmaps the window' do
+      # then
+      expect(Xlib::Capi).to receive(:XUnmapWindow).
+        with(subject.display.to_native, subject.to_native)
+
+      # when
+      subject.unmap
+    end
+  end
+
   describe '#map_state' do
     it 'returns the map state' do
       map_state = subject.map_state
