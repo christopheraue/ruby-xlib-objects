@@ -112,6 +112,17 @@ describe Xlib::Window do
     end
   end
 
+  describe '#move_resize' do
+    it 'moves and resizes the window to the given values' do
+      # then
+      expect(Xlib::Capi).to receive(:XMoveResizeWindow).
+        with(subject.display.to_native, subject.to_native, 1, 2, 3, 4)
+
+      # when
+      subject.move_resize(1, 2, 3, 4)
+    end
+  end
+
   describe '#screen' do
     it 'returns the screen the window is living in' do
       expect(subject.screen).to be_a(Xlib::Screen)

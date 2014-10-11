@@ -62,6 +62,10 @@ module Xlib
       map_state == 'IsViewable'
     end
 
+    def move_resize(x, y, width, height)
+      Xlib::Capi.XMoveResizeWindow(display.to_native, to_native, x, y, width, height)
+    end
+
     def screen
       Xlib::Screen.new(display, attributes[:screen])
     end
