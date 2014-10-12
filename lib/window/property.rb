@@ -8,6 +8,9 @@ module Xlib
                else
                  Capi::XInternAtom(window.display.to_native, name.to_s, true)
                end
+
+        return nil if atom == 0 # property does not exist
+
         data_offset = 0           # data offset
         data_max_length = 2**16   # max data length, multiple of 32 bit
         allow_deleted = false     # don't retrieve deleted properties
@@ -28,8 +31,9 @@ module Xlib
         )
 
         raise 'Retrieve the property failed with error status.' unless status == 0
-        raise 'Property does not exist for this window.' if pointer.null?
-        raise 'Cut property data off after maximal length.' if cutoff_data.read_ulong != 0
+        #raise 'Cut property data off after maximal length.' if cutoff_data.read_ulong != 0
+
+        return nil if pointer.read_pointer.null? # property is not set for the window
 
         # get the property's value
         get_value(window, pointer, {

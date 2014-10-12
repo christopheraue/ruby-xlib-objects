@@ -75,7 +75,7 @@ describe Xlib::Display do
       end
     end
 
-    describe '#handle_next_event' do
+    describe '#handle_events' do
       it 'works'
     end
 
