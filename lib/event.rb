@@ -11,5 +11,9 @@ module Xlib
         end
       end
     end
+
+    def method_missing(method_name)
+      nil
+    end
   end
 end

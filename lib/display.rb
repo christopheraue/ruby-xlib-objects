@@ -59,7 +59,7 @@ module Xlib
     end
 
     def handle_event(event)
-      handling_window_id = event[:event] || event[:parent] || event[:window]
+      handling_window_id = event.event || event.parent || event.window
       handling_window = Xlib::Window.new(self, handling_window_id)
       handling_window.handle(event) if handling_window
     end
