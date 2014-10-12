@@ -1,7 +1,7 @@
 module Xlib
   class Window
     class << self
-      def new(display, window_id, options = {cached: true})
+      def new(display, window_id, options = { cached: true })
         @windows ||= {}
         @windows[display.name] ||= {}
 
@@ -44,10 +44,12 @@ module Xlib
 
     def map
       Xlib::Capi.XMapWindow(display.to_native, to_native)
+      display.flush
     end
 
     def unmap
       Xlib::Capi.XUnmapWindow(display.to_native, to_native)
+      display.flush
     end
 
     def map_state
@@ -64,6 +66,7 @@ module Xlib
 
     def move_resize(x, y, width, height)
       Xlib::Capi.XMoveResizeWindow(display.to_native, to_native, x, y, width, height)
+      display.flush
     end
 
     def screen
@@ -83,6 +86,7 @@ module Xlib
 
       @event_mask |= Capi::EVENT_MASK[event_mask]
       Xlib::Capi.XSelectInput(display.to_native, to_native, @event_mask)
+      display.flush
       self
     end
 
@@ -91,6 +95,7 @@ module Xlib
 
       @event_mask &= ~Capi::EVENT_MASK[event_mask]
       Xlib::Capi.XSelectInput(display.to_native, to_native, @event_mask)
+      display.flush
       self
     end
 

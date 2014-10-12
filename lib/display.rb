@@ -38,7 +38,7 @@ module Xlib
     end
 
     def file_descriptor
-      Xlib::Capi::XConnectionNumber(self.to_native)
+      Xlib::Capi.XConnectionNumber(self.to_native)
     end
 
     def handle_events
@@ -47,14 +47,18 @@ module Xlib
       end
     end
 
+    def flush
+      Xlib::Capi.XFlush(self.to_native)
+    end
+
     private
     def pending_events
-      Xlib::Capi::XPending(self.to_native)
+      Xlib::Capi.XPending(self.to_native)
     end
 
     def next_event
       x_event = Xlib::Capi::XEvent.new
-      Xlib::Capi::XNextEvent(self.to_native, x_event) # blocks
+      Xlib::Capi.XNextEvent(self.to_native, x_event) # blocks
       Xlib::Event.new(x_event)
     end
 
