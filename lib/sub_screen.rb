@@ -2,10 +2,11 @@ module CappX11
   class SubScreen
     attr_reader :screen, :display
 
-    def initialize(screen, crtc)
+    def initialize(screen, output, crtc)
       @screen = screen
       @display = screen.display
       @crtc = crtc
+      @output = output
     end
 
     def left
@@ -22,6 +23,14 @@ module CappX11
 
     def height
       @crtc[:height]
+    end
+
+    def connected?
+      @output[:connection] == 0
+    end
+
+    def adapter
+      @output[:name]
     end
   end
 end

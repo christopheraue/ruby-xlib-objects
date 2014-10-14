@@ -24,7 +24,11 @@ module CappX11
     end
 
     def sub_screens
-      crtcs(screen_resources).map { |crtc| SubScreen.new(self, crtc) }
+      screen_res = screen_resources
+      outputs(screen_res).map do |output|
+        crtc = crtc_info(screen_res, output[:crtc])
+        SubScreen.new(self, output, crtc)
+      end
     end
 
     private
@@ -34,22 +38,28 @@ module CappX11
       X11::Xrandr::XRRScreenResources.new(resources_ptr)
     end
 
-    def crtcs(screen_resources)
-      (0...screen_resources[:ncrtc]).map do |crtc_pos|
-        crtc = crtc(screen_resources[:crtcs], crtc_pos)
-        crtc_info(screen_resources, crtc)
-      end
-    end
-
-    def crtc(pointer, position)
-      offset = position * (FFI.type_size(:RRCrtc))
-      (pointer + offset).read_ulong
-    end
-
     def crtc_info(screen_resources, crtc)
       crtc_info_ptr = X11::Xrandr.XRRGetCrtcInfo(display.to_native,
         screen_resources.pointer, crtc)
       X11::Xrandr::XRRCrtcInfo.new(crtc_info_ptr)
+    end
+
+    def outputs(screen_resources)
+      (0...screen_resources[:noutput]).map do |output_pos|
+        output = output(screen_resources[:outputs], output_pos)
+        output_info(screen_resources, output)
+      end
+    end
+
+    def output(pointer, position)
+      offset = position * (FFI.type_size(:RROutput))
+      (pointer + offset).read_ulong
+    end
+
+    def output_info(screen_resources, output)
+      output_info_ptr = X11::Xrandr.XRRGetOutputInfo(display.to_native,
+        screen_resources.pointer, output)
+      X11::Xrandr::XRROutputInfo.new(output_info_ptr)
     end
   end
 end
