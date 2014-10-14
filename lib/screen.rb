@@ -22,5 +22,34 @@ module CappX11
         Window.new(display, win_id)
       end
     end
+
+    def sub_screens
+      crtcs(screen_resources).map { |crtc| SubScreen.new(self, crtc) }
+    end
+
+    private
+    def screen_resources
+      resources_ptr = X11::Xrandr.XRRGetScreenResources(display.to_native,
+        root_window.to_native)
+      X11::Xrandr::XRRScreenResources.new(resources_ptr)
+    end
+
+    def crtcs(screen_resources)
+      (0...screen_resources[:ncrtc]).map do |crtc_pos|
+        crtc = crtc(screen_resources[:crtcs], crtc_pos)
+        crtc_info(screen_resources, crtc)
+      end
+    end
+
+    def crtc(pointer, position)
+      offset = position * (FFI.type_size(:RRCrtc))
+      (pointer + offset).read_ulong
+    end
+
+    def crtc_info(screen_resources, crtc)
+      crtc_info_ptr = X11::Xrandr.XRRGetCrtcInfo(display.to_native,
+        screen_resources.pointer, crtc)
+      X11::Xrandr::XRRCrtcInfo.new(crtc_info_ptr)
+    end
   end
 end

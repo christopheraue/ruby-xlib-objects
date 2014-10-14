@@ -21,9 +21,23 @@ describe CappX11::Screen do
       # when
       clients = subject.client_windows
 
+      # then
       expect(clients).to be_a(Array)
       clients.each do |client|
         expect(client).to be_a(CappX11::Window)
+      end
+    end
+  end
+
+  describe '#sub_screens' do
+    it 'returns an array with all xrandr sub screens' do
+      # when
+      sub_screens = subject.sub_screens
+
+      # then
+      expect(sub_screens).to be_a(Array)
+      sub_screens.each do |sub_screen|
+        expect(sub_screen).to be_a(CappX11::SubScreen)
       end
     end
   end
