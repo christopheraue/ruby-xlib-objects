@@ -1,4 +1,4 @@
-module Xlib
+module CappX11
   module Window::Property
     class << self
       def get(window, name)
@@ -6,7 +6,7 @@ module Xlib
         atom = if name.is_a? Integer
                  name
                else
-                 Capi::XInternAtom(window.display.to_native, name.to_s, true)
+                 X11::Xlib.XInternAtom(window.display.to_native, name.to_s, true)
                end
 
         return nil if atom == 0 # property does not exist
@@ -14,7 +14,7 @@ module Xlib
         data_offset = 0           # data offset
         data_max_length = 2**16   # max data length, multiple of 32 bit
         allow_deleted = false     # don't retrieve deleted properties
-        requested_type = Capi::ANY_PROPERTY_TYPE
+        requested_type = X11::Xlib::ANY_PROPERTY_TYPE
 
         # response data
         pointer     = FFI::MemoryPointer.new :pointer
@@ -24,7 +24,7 @@ module Xlib
         cutoff_data = FFI::MemoryPointer.new :ulong
 
         # do and validate the request
-        status = Capi::XGetWindowProperty(
+        status = X11::Xlib.XGetWindowProperty(
           window.display.to_native, window.to_native,
           atom, data_offset, data_max_length, allow_deleted, requested_type,
           type, item_size, item_count, cutoff_data, pointer
@@ -39,7 +39,7 @@ module Xlib
         get_value(window, pointer, {
           item_size: item_size.read_int,
           item_count: item_count.read_ulong,
-          type: Capi::XGetAtomName(window.display.to_native, type.read_int).to_sym
+          type: X11::Xlib.XGetAtomName(window.display.to_native, type.read_int).to_sym
         })
       end
 
@@ -49,16 +49,16 @@ module Xlib
 
         # query list of properties (comes back as list of atoms)
         count_ptr = FFI::MemoryPointer.new :int
-        atoms_ptr = Capi::XListProperties(display_ptr, window_id, count_ptr)
+        atoms_ptr = X11::Xlib.XListProperties(display_ptr, window_id, count_ptr)
         count = count_ptr.read_int
 
         # map atoms to names
         names = atoms_ptr.read_array_of_ulong(count).map do |atom|
-          Xlib::Capi::XGetAtomName(display_ptr, atom)
+          X11::Xlib.XGetAtomName(display_ptr, atom)
         end
 
         # free atom list
-        Capi::XFree(atoms_ptr)
+        X11::Xlib.XFree(atoms_ptr)
 
         # map names to properties
         props = names.map do |name|
@@ -91,7 +91,7 @@ module Xlib
 
         if data_options[:type] == :ATOM
           value.map! do |atom|
-            Xlib::Capi::XGetAtomName(window.display.to_native, atom)
+            X11::Xlib.XGetAtomName(window.display.to_native, atom)
           end
         end
 

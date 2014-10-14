@@ -1,12 +1,12 @@
 FactoryGirl.define do
-  factory :display, class: Xlib::Display do
-    initialize_with { Xlib::Display.open(':0') }
+  factory :display, class: CappX11::Display do
+    initialize_with { CappX11::Display.open(':0') }
   end
 
-  factory :display_struct, class: Xlib::Capi::Display do
+  factory :display_struct, class: X11::Xlib::Display do
     initialize_with do
-      display_ptr = Xlib::Capi.XOpenDisplay(':0')
-      Xlib::Capi::Display.new(display_ptr)
+      display_ptr = X11::Xlib.XOpenDisplay(':0')
+      X11::Xlib::Display.new(display_ptr)
     end
   end
 end

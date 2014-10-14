@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :property, class: Xlib::Window::Property do
+  factory :property, class: CappX11::Window::Property do
     initialize_with do
       new(build(:window), {
         pointer: FFI::MemoryPointer.new(:pointer),

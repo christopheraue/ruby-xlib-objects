@@ -1,8 +1,8 @@
-module Xlib
+module CappX11
   class Display
     class << self
       def open(name)
-        display_pointer = Xlib::Capi.XOpenDisplay(name)
+        display_pointer = X11::Xlib.XOpenDisplay(name)
 
         raise ArgumentError, "Unknown display #{name}" if display_pointer.null?
 
@@ -22,7 +22,7 @@ module Xlib
     end
 
     def initialize(display_pointer)
-      @struct = Capi::Display.new(display_pointer)
+      @struct = X11::Xlib::Display.new(display_pointer)
     end
 
     def to_native
@@ -38,7 +38,7 @@ module Xlib
     end
 
     def file_descriptor
-      Xlib::Capi.XConnectionNumber(self.to_native)
+      X11::Xlib.XConnectionNumber(self.to_native)
     end
 
     def handle_events
@@ -48,28 +48,28 @@ module Xlib
     end
 
     def flush
-      Xlib::Capi.XFlush(self.to_native)
+      X11::Xlib.XFlush(self.to_native)
     end
 
     private
     def pending_events
-      Xlib::Capi.XPending(self.to_native)
+      X11::Xlib.XPending(self.to_native)
     end
 
     def next_event
-      x_event = Xlib::Capi::XEvent.new
-      Xlib::Capi.XNextEvent(self.to_native, x_event) # blocks
-      Xlib::Event.new(x_event)
+      x_event = X11::Xlib::XEvent.new
+      X11::Xlib.XNextEvent(self.to_native, x_event) # blocks
+      Event.new(x_event)
     end
 
     def handle_event(event)
       handling_window_id = event.event || event.parent || event.window
-      handling_window = Xlib::Window.new(self, handling_window_id)
+      handling_window = Window.new(self, handling_window_id)
       handling_window.handle(event) if handling_window
     end
 
     def screen_pointer(number)
-      @struct[:screens] + (number * Capi::Screen.size)
+      @struct[:screens] + (number * X11::Xlib::Screen.size)
     end
 
     def read_screen(number)

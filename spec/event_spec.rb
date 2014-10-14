@@ -1,4 +1,4 @@
-describe Xlib::Event do
+describe CappX11::Event do
   describe '#initialize' do
     it 'maps the event attributes to methods' do
       # given
@@ -9,7 +9,7 @@ describe Xlib::Event do
       event = described_class.new(x_event)
 
       # then
-      expect(event).to be_a(Xlib::Event)
+      expect(event).to be_a(CappX11::Event)
       expect(event.type).to be(28)
       expect(event.serial).to be(0)
       expect(event.send_event).to be(false)
@@ -17,7 +17,7 @@ describe Xlib::Event do
       expect(event.window).to be(window.to_native)
       expect(event.atom).to be(39)
       expect(event.time).to be(1412860400)
-      expect(event.state).to be(Xlib::Capi::PROPERTY_NEW_VALUE)
+      expect(event.state).to be(X11::Xlib::PROPERTY_NEW_VALUE)
     end
   end
 end

@@ -1,4 +1,4 @@
-describe Xlib::Window::Property do
+describe CappX11::Window::Property do
   describe '.get' do
     it 'requests property data from the X server and maps it to an instance' do
       window = build(:window)

@@ -1,4 +1,4 @@
-describe Xlib::Display do
+describe CappX11::Display do
   let(:subject) { described_class.open(':0') }
   let(:display_struct) { build(:display_struct) }
 
@@ -70,7 +70,7 @@ describe Xlib::Display do
         expect(screens).to be_a(Array)
         expect(screens.size).to eq(display_struct[:nscreens])
         screens.each do |screen|
-          expect(screen).to be_a(Xlib::Screen)
+          expect(screen).to be_a(CappX11::Screen)
         end
       end
     end

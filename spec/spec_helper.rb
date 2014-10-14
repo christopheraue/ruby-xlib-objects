@@ -1,4 +1,4 @@
-require_relative '../lib/Xlib'
+require_relative '../lib/capp-x11'
 require 'factory_girl'
 
 Dir['./spec/mixin/**/*.rb'].sort.each { |f| require f }

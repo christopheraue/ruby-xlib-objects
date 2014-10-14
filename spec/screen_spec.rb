@@ -1,4 +1,4 @@
-describe Xlib::Screen do
+describe CappX11::Screen do
   let(:subject) { build(:screen) }
 
   describe '#to_native' do
@@ -9,9 +9,9 @@ describe Xlib::Screen do
 
   describe '#root_window' do
     it 'returns the root window' do
-      expect(subject.root_window).to be_a(Xlib::Window)
+      expect(subject.root_window).to be_a(CappX11::Window)
       expect(subject.root_window.to_native).to be(
-        Xlib::Capi.XRootWindow(subject.display.to_native, 0)
+        X11::Xlib.XRootWindow(subject.display.to_native, 0)
       )
     end
   end
@@ -23,7 +23,7 @@ describe Xlib::Screen do
 
       expect(clients).to be_a(Array)
       clients.each do |client|
-        expect(client).to be_a(Xlib::Window)
+        expect(client).to be_a(CappX11::Window)
       end
     end
   end

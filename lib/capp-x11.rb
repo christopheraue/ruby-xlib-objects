@@ -1,8 +1,8 @@
 require 'bundler/setup'
+require 'X11'
 
-module Xlib; end
+module CappX11; end
 
-require_relative 'capi/init'
 require_relative 'display'
 require_relative 'screen'
 require_relative 'window'

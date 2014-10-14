@@ -1,4 +1,4 @@
-describe Xlib::Window do
+describe CappX11::Window do
   let(:subject) { build(:window) }
 
   describe '#to_native' do
@@ -38,7 +38,7 @@ describe Xlib::Window do
   describe '#map' do
     it 'maps the window' do
       # then
-      expect(Xlib::Capi).to receive(:XMapWindow).
+      expect(X11::Xlib).to receive(:XMapWindow).
         with(subject.display.to_native, subject.to_native)
 
       # when
@@ -49,7 +49,7 @@ describe Xlib::Window do
   describe '#unmap' do
     it 'unmaps the window' do
       # then
-      expect(Xlib::Capi).to receive(:XUnmapWindow).
+      expect(X11::Xlib).to receive(:XUnmapWindow).
         with(subject.display.to_native, subject.to_native)
 
       # when
@@ -115,7 +115,7 @@ describe Xlib::Window do
   describe '#move_resize' do
     it 'moves and resizes the window to the given values' do
       # then
-      expect(Xlib::Capi).to receive(:XMoveResizeWindow).
+      expect(X11::Xlib).to receive(:XMoveResizeWindow).
         with(subject.display.to_native, subject.to_native, 1, 2, 3, 4)
 
       # when
@@ -125,13 +125,13 @@ describe Xlib::Window do
 
   describe '#screen' do
     it 'returns the screen the window is living in' do
-      expect(subject.screen).to be_a(Xlib::Screen)
+      expect(subject.screen).to be_a(CappX11::Screen)
     end
   end
 
   describe '#display' do
     it 'returns the display the window is living in' do
-      expect(subject.display).to be_a(Xlib::Display)
+      expect(subject.display).to be_a(CappX11::Display)
     end
   end
 
@@ -139,7 +139,7 @@ describe Xlib::Window do
     it 'returns a hash with all set properties' do
       # given
       prop_list = { prop1: 'prop1 value', prop2: 'prop2 value', prop3: 'prop3 value'}
-      allow(Xlib::Window::Property).to receive(:all).with(subject).
+      allow(CappX11::Window::Property).to receive(:all).with(subject).
         and_return(prop_list)
 
       # when
@@ -155,7 +155,7 @@ describe Xlib::Window do
       # given
       prop_name  = 'prop name'
       prop_value = 'prop value'
-      allow(Xlib::Window::Property).to receive(:get).with(subject, prop_name).
+      allow(CappX11::Window::Property).to receive(:get).with(subject, prop_name).
         and_return(prop_value)
 
       # when
@@ -176,10 +176,10 @@ describe Xlib::Window do
     context 'The given event mask is valid' do
       it 'lets the window listen to an event mask' do
         # then
-        expect(Xlib::Capi).to receive(:XSelectInput).with(
+        expect(X11::Xlib).to receive(:XSelectInput).with(
           subject.display.to_native,
           subject.to_native,
-          Xlib::Capi::EVENT_MASK[:property_change]
+          X11::Xlib::EVENT_MASK[:property_change]
         )
 
         # when
@@ -194,10 +194,10 @@ describe Xlib::Window do
         subject.listen_to :property_change do |event| event end
 
         # then
-        expect(Xlib::Capi).to receive(:XSelectInput).with(
+        expect(X11::Xlib).to receive(:XSelectInput).with(
           subject.display.to_native,
           subject.to_native,
-          Xlib::Capi::EVENT_MASK[:property_change] | Xlib::Capi::EVENT_MASK[:structure_notify]
+          X11::Xlib::EVENT_MASK[:property_change] | X11::Xlib::EVENT_MASK[:structure_notify]
         )
 
         # when
@@ -220,10 +220,10 @@ describe Xlib::Window do
         subject.listen_to :structure_notify do |event| event end
 
         # then
-        expect(Xlib::Capi).to receive(:XSelectInput).with(
+        expect(X11::Xlib).to receive(:XSelectInput).with(
           subject.display.to_native,
           subject.to_native,
-          Xlib::Capi::EVENT_MASK[:structure_notify]
+          X11::Xlib::EVENT_MASK[:structure_notify]
         )
 
         # when
@@ -252,7 +252,7 @@ describe Xlib::Window do
   end
 
   describe '#handle' do
-    let(:event) { Xlib::Event.new(build(:x_event, window: subject)) }
+    let(:event) { CappX11::Event.new(build(:x_event, window: subject)) }
 
     context 'no event handler registered' do
       it 'does nothing' do

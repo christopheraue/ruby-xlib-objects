@@ -1,4 +1,4 @@
-module Xlib
+module CappX11
   class Window
     class << self
       def new(display, window_id, options = { cached: true })
@@ -43,17 +43,17 @@ module Xlib
     end
 
     def map
-      Xlib::Capi.XMapWindow(display.to_native, to_native)
+      X11::Xlib.XMapWindow(display.to_native, to_native)
       display.flush
     end
 
     def unmap
-      Xlib::Capi.XUnmapWindow(display.to_native, to_native)
+      X11::Xlib.XUnmapWindow(display.to_native, to_native)
       display.flush
     end
 
     def map_state
-      Capi::MAP_STATE[attributes[:map_state]]
+      X11::Xlib::MAP_STATE[attributes[:map_state]]
     end
 
     def mapped?
@@ -65,12 +65,12 @@ module Xlib
     end
 
     def move_resize(x, y, width, height)
-      Xlib::Capi.XMoveResizeWindow(display.to_native, to_native, x, y, width, height)
+      X11::Xlib.XMoveResizeWindow(display.to_native, to_native, x, y, width, height)
       display.flush
     end
 
     def screen
-      Xlib::Screen.new(display, attributes[:screen])
+      Screen.new(display, attributes[:screen])
     end
 
     def property(name)
@@ -82,27 +82,27 @@ module Xlib
     end
 
     def listen_to(event_mask)
-      raise "Unknown event #{event_mask}." unless Capi::EVENT_MASK[event_mask]
+      raise "Unknown event #{event_mask}." unless X11::Xlib::EVENT_MASK[event_mask]
 
-      @event_mask |= Capi::EVENT_MASK[event_mask]
-      Xlib::Capi.XSelectInput(display.to_native, to_native, @event_mask)
+      @event_mask |= X11::Xlib::EVENT_MASK[event_mask]
+      X11::Xlib.XSelectInput(display.to_native, to_native, @event_mask)
       display.flush
       self
     end
 
     def turn_deaf_on(event_mask)
-      raise "Unknown event #{event_mask}." unless Capi::EVENT_MASK[event_mask]
+      raise "Unknown event #{event_mask}." unless X11::Xlib::EVENT_MASK[event_mask]
 
-      @event_mask &= ~Capi::EVENT_MASK[event_mask]
-      Xlib::Capi.XSelectInput(display.to_native, to_native, @event_mask)
+      @event_mask &= ~X11::Xlib::EVENT_MASK[event_mask]
+      X11::Xlib.XSelectInput(display.to_native, to_native, @event_mask)
       display.flush
       self
     end
 
     def on(event_name, &block)
-      raise "Unknown event #{event_name}." unless Capi::EVENT[event_name]
+      raise "Unknown event #{event_name}." unless X11::Xlib::EVENT[event_name]
 
-      @event_handler[Capi::EVENT[event_name]] = block
+      @event_handler[X11::Xlib::EVENT[event_name]] = block
       self
     end
 
@@ -112,8 +112,8 @@ module Xlib
 
     private
     def attributes
-      attributes = Capi::WindowAttributes.new
-      Capi::XGetWindowAttributes(display.to_native, to_native, attributes.pointer)
+      attributes = X11::Xlib::WindowAttributes.new
+      X11::Xlib::XGetWindowAttributes(display.to_native, to_native, attributes.pointer)
       attributes
     end
   end
