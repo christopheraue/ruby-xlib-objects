@@ -24,42 +24,39 @@ module CappX11
     end
 
     def sub_screens
-      screen_res = screen_resources
-      outputs(screen_res).map do |output|
-        crtc = crtc_info(screen_res, output[:crtc])
-        SubScreen.new(self, output, crtc)
+      outputs.map do |output|
+        sub_screen = SubScreen.new(self, output[:name])
+        X11::Xrandr.XRRFreeOutputInfo(output.pointer)
+        sub_screen
       end
+    end
+
+    def outputs
+      screen_res = screen_resources
+      outputs = (0...screen_res[:noutput]).map do |output_pos|
+        output_id = output_id(screen_res[:outputs], output_pos)
+        output(screen_res, output_id)
+      end
+      X11::Xrandr.XRRFreeScreenResources(screen_res)
+      outputs
     end
 
     private
     def screen_resources
-      resources_ptr = X11::Xrandr.XRRGetScreenResources(display.to_native,
-        root_window.to_native)
+      resources_ptr = X11::Xrandr.XRRGetScreenResources(
+        display.to_native, root_window.to_native)
       X11::Xrandr::XRRScreenResources.new(resources_ptr)
     end
 
-    def crtc_info(screen_resources, crtc)
-      crtc_info_ptr = X11::Xrandr.XRRGetCrtcInfo(display.to_native,
-        screen_resources.pointer, crtc)
-      X11::Xrandr::XRRCrtcInfo.new(crtc_info_ptr)
-    end
-
-    def outputs(screen_resources)
-      (0...screen_resources[:noutput]).map do |output_pos|
-        output = output(screen_resources[:outputs], output_pos)
-        output_info(screen_resources, output)
-      end
-    end
-
-    def output(pointer, position)
+    def output_id(pointer, position)
       offset = position * (FFI.type_size(:RROutput))
       (pointer + offset).read_ulong
     end
 
-    def output_info(screen_resources, output)
-      output_info_ptr = X11::Xrandr.XRRGetOutputInfo(display.to_native,
-        screen_resources.pointer, output)
-      X11::Xrandr::XRROutputInfo.new(output_info_ptr)
+    def output(screen_resources, output_id)
+      output_ptr = X11::Xrandr.XRRGetOutputInfo(display.to_native,
+        screen_resources.pointer, output_id)
+      X11::Xrandr::XRROutputInfo.new(output_ptr)
     end
   end
 end
