@@ -37,7 +37,7 @@ module CappX11
         output_id = output_id(screen_res[:outputs], output_pos)
         output(screen_res, output_id)
       end
-      X11::Xrandr.XRRFreeScreenResources(screen_res)
+      X11::Xrandr.XRRFreeScreenResources(screen_res.pointer)
       outputs
     end
 
