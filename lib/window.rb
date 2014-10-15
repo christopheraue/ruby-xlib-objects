@@ -1,14 +1,14 @@
 module CappX11
   class Window
     class << self
-      def new(display, window_id, options = { cached: true })
+      def new(display, window_id, reinitialize = false)
         @windows ||= {}
         @windows[display.name] ||= {}
 
-        if options[:cached]
-          @windows[display.name][window_id] ||= super(display, window_id)
-        else
+        if reinitialize
           @windows[display.name][window_id] = super(display, window_id)
+        else
+          @windows[display.name][window_id] ||= super(display, window_id)
         end
       end
     end

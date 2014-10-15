@@ -1,12 +1,18 @@
 module CappX11
   class Display
     class << self
-      def open(name)
-        display_pointer = X11::Xlib.XOpenDisplay(name)
+      def open(name, reopen = true)
+        @displays ||= {}
 
-        raise ArgumentError, "Unknown display #{name}" if display_pointer.null?
+        if reopen
+          @displays[name] = X11::Xlib.XOpenDisplay(name)
+        else
+          @displays[name] ||= X11::Xlib.XOpenDisplay(name)
+        end
 
-        new(display_pointer)
+        raise ArgumentError, "Unknown display #{name}" if @displays[name].null?
+
+        new(@displays[name])
       end
 
       def names
