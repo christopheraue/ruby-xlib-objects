@@ -27,23 +27,24 @@ module CappX11
     end
 
     def left
-      absolute_position[:left]
+      position[:left]
     end
 
     def top
-      absolute_position[:top]
+      position[:top]
     end
 
     def position
-      absolute_position
+      attr = attributes
+      relative_to_root(attr[:x], attr[:y])
     end
 
     def width
-      attributes[:width]
+      size[:width]
     end
 
     def height
-      attributes[:height]
+      size[:height]
     end
 
     def size
@@ -116,6 +117,12 @@ module CappX11
     end
 
     def handle(event)
+      if event.respond_to? :x and event.respond_to? :y
+        pos_abs = relative_to_root(event.x, event.y)
+        event.struct[:x] = pos_abs[:left]
+        event.struct[:y] = pos_abs[:top]
+      end
+
       @event_handler[event.type].call(event) if @event_handler[event.type]
     end
 
@@ -126,17 +133,16 @@ module CappX11
       attributes
     end
 
-    def absolute_position
-      attr = attributes
-      left = FFI::MemoryPointer.new :int
-      top  = FFI::MemoryPointer.new :int
-      child  = FFI::MemoryPointer.new :Window
+    def relative_to_root(left, top)
+      left_abs = FFI::MemoryPointer.new :int
+      top_abs  = FFI::MemoryPointer.new :int
+      child    = FFI::MemoryPointer.new :Window
       root_win = screen.root_window
 
       X11::Xlib::XTranslateCoordinates(display.to_native, to_native,
-        root_win.to_native, attr[:x], attr[:y], left, top, child)
+        root_win.to_native, left, top, left_abs, top_abs, child)
 
-      { left: left.read_int, top: top.read_int }
+      { left: left_abs.read_int, top: top_abs.read_int }
     end
   end
 end
