@@ -27,11 +27,15 @@ module CappX11
     end
 
     def left
-      attributes[:x]
+      absolute_position[:left]
     end
 
     def top
-      attributes[:y]
+      absolute_position[:top]
+    end
+
+    def position
+      absolute_position
     end
 
     def width
@@ -40,6 +44,11 @@ module CappX11
 
     def height
       attributes[:height]
+    end
+
+    def size
+      attr = attributes
+      { width: attr[:width], height: attr[:height] }
     end
 
     def map
@@ -115,6 +124,19 @@ module CappX11
       attributes = X11::Xlib::WindowAttributes.new
       X11::Xlib::XGetWindowAttributes(display.to_native, to_native, attributes.pointer)
       attributes
+    end
+
+    def absolute_position
+      attr = attributes
+      left = FFI::MemoryPointer.new :int
+      top  = FFI::MemoryPointer.new :int
+      child  = FFI::MemoryPointer.new :Window
+      root_win = screen.root_window
+
+      X11::Xlib::XTranslateCoordinates(display.to_native, to_native,
+        root_win.to_native, attr[:x], attr[:y], left, top, child)
+
+      { left: left.read_int, top: top.read_int }
     end
   end
 end
