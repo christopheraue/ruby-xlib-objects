@@ -204,6 +204,10 @@ describe CappX11::Window do
         subject.listen_to :structure_notify do |event| event end
       end
     end
+
+    context 'The window does not exist' do
+      it 'works'
+    end
   end
 
   describe '#turn_deaf_on' do
@@ -232,6 +236,10 @@ describe CappX11::Window do
         # then
         expect(returned).to be(subject)
       end
+    end
+
+    context 'The window does not exist' do
+      it 'works'
     end
   end
 

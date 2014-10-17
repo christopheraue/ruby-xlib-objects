@@ -95,7 +95,12 @@ module CappX11
       raise "Unknown event #{event_mask}." unless X11::Xlib::EVENT_MASK[event_mask]
 
       @event_mask |= X11::Xlib::EVENT_MASK[event_mask]
-      X11::Xlib.XSelectInput(display.to_native, to_native, @event_mask)
+      begin
+        X11::Xlib.XSelectInput(display.to_native, to_native, @event_mask)
+      rescue
+        # rescue from BadWindow errors, it the window has been destroyed
+        raise "The window with id '#{to_native}' no longer exists."
+      end
       display.flush
       self
     end
@@ -104,7 +109,9 @@ module CappX11
       raise "Unknown event #{event_mask}." unless X11::Xlib::EVENT_MASK[event_mask]
 
       @event_mask &= ~X11::Xlib::EVENT_MASK[event_mask]
-      X11::Xlib.XSelectInput(display.to_native, to_native, @event_mask)
+      # rescue from BadWindow errors, it the window has been destroyed. Ignore
+      # it, since there won't be any events any more anyway
+      X11::Xlib.XSelectInput(display.to_native, to_native, @event_mask) rescue
       display.flush
       self
     end
@@ -113,6 +120,13 @@ module CappX11
       raise "Unknown event #{event_name}." unless X11::Xlib::EVENT[event_name]
 
       @event_handler[X11::Xlib::EVENT[event_name]] = block
+      self
+    end
+
+    def off(event_name)
+      raise "Unknown event #{event_name}." unless X11::Xlib::EVENT[event_name]
+
+      @event_handler[X11::Xlib::EVENT[event_name]] = nil
       self
     end
 
