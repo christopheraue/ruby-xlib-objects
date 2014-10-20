@@ -131,12 +131,13 @@ module CappX11
     end
 
     def handle(event)
+=begin
       if event.respond_to? :x and event.respond_to? :y
         pos_abs = relative_to_root(event.x, event.y)
         event.struct[:x] = pos_abs[:left]
         event.struct[:y] = pos_abs[:top]
       end
-
+=end
       @event_handler[event.type].call(event) if @event_handler[event.type]
     end
 
