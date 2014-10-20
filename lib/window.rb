@@ -35,8 +35,7 @@ module CappX11
     end
 
     def position
-      attr = attributes
-      relative_to_root(attr[:x], attr[:y])
+      relative_to_root(0, 0)
     end
 
     def width
@@ -131,13 +130,11 @@ module CappX11
     end
 
     def handle(event)
-=begin
       if event.respond_to? :x and event.respond_to? :y
-        pos_abs = relative_to_root(event.x, event.y)
+        pos_abs = relative_to_root(0, 0)
         event.struct[:x] = pos_abs[:left]
         event.struct[:y] = pos_abs[:top]
       end
-=end
       @event_handler[event.type].call(event) if @event_handler[event.type]
     end
 
