@@ -62,7 +62,7 @@ module CappX11
     end
 
     def minimize
-      X11::Xlib.XIconifyWindow(display.to_native, to_native, screen.to_native)
+      X11::Xlib.XIconifyWindow(display.to_native, to_native, screen.number)
     end
 
     def iconify

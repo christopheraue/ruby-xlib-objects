@@ -11,6 +11,10 @@ module CappX11
       @struct.pointer
     end
 
+    def number
+      X11::Xlib::XScreenNumberOfScreen(to_native)
+    end
+
     def root_window
       window_id = X11::Xlib::XRootWindowOfScreen(self.to_native)
       Window.new(display, window_id)
