@@ -61,6 +61,22 @@ module CappX11
       display.flush
     end
 
+    def minimize
+      X11::Xlib.XIconifyWindow(display.to_native, to_native, screen.to_native)
+    end
+
+    def iconify
+      minimize
+    end
+
+    def unminimize
+      map
+    end
+
+    def deiconify
+      unminimize
+    end
+
     def map_state
       X11::Xlib::MAP_STATE[attributes[:map_state]]
     end
