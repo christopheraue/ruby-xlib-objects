@@ -85,11 +85,11 @@ module CappX11
       def parse_raw_data(window, data, data_options)
         value = if [:STRING, :UTF8_STRING].include?(data_options[:type])
                   parse_string_data(data, data_options)
-                elsif data_options[:item_count] == 0 or data.empty?
-                  return nil
                 else
                   parse_non_string_data(data, data_options)
                 end
+
+        return unless value
 
         if data_options[:type] == :ATOM
           value.map! do |atom|
@@ -111,6 +111,8 @@ module CappX11
       end
 
       def parse_non_string_data(data, data_options)
+        return if data_options[:item_count] == 0
+
         directive = case data_options[:type]
                     when :CARDINAL    then 'I!'
                     when :ATOM        then 'L!'
