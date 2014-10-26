@@ -63,6 +63,7 @@ module CappX11
 
     def minimize
       X11::Xlib.XIconifyWindow(display.to_native, to_native, screen.number)
+      display.flush
     end
 
     def iconify
@@ -79,6 +80,7 @@ module CappX11
 
     def raise
       X11::Xlib.XRaiseWindow(display.to_native, to_native)
+      display.flush
     end
 
     def map_state
