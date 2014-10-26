@@ -77,6 +77,10 @@ module CappX11
       unminimize
     end
 
+    def raise
+      X11::Xlib.XRaiseWindow(display.to_native, to_native)
+    end
+
     def map_state
       X11::Xlib::MAP_STATE[attributes[:map_state]]
     end
