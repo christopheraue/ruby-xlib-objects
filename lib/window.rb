@@ -26,24 +26,29 @@ module CappX11
       @native
     end
 
-    def left
-      position[:left]
+    def content_left
+      content_position.left
     end
 
-    def top
-      position[:top]
+    def content_top
+      content_position.top
     end
 
-    def position
+    def content_position
       relative_to_root(0, 0)
     end
 
-    def width
-      size[:width]
+    def content_width
+      content_size.width
     end
 
-    def height
-      size[:height]
+    def content_height
+      content_size.height
+    end
+
+    def content_size
+      attr = attributes
+      Struct.new(width: attr[:width], height: attr[:height])
     end
 
     def frame
@@ -52,9 +57,38 @@ module CappX11
         bottom: frame[4])
     end
 
+    def position
+      content_position = self.content_position
+      frame = self.frame
+      Struct.new(
+        left: content_position.left - frame.left,
+        top:  content_position.top  - frame.top
+      )
+    end
+
+    def left
+      position.left
+    end
+
+    def top
+      position.top
+    end
+
     def size
-      attr = attributes
-      { width: attr[:width], height: attr[:height] }
+      content_size = self.content_size
+      frame = self.frame
+      Struct.new(
+        width:  content_size.width  - frame.width,
+        height: content_size.height - frame.height
+      )
+    end
+
+    def width
+      position.width
+    end
+
+    def height
+      position.height
     end
 
     def map
@@ -160,8 +194,9 @@ module CappX11
     def handle(event)
       if event.respond_to? :x and event.respond_to? :y
         pos_abs = relative_to_root(0, 0)
-        event.struct[:x] = pos_abs[:left]
-        event.struct[:y] = pos_abs[:top]
+        frame = self.frame
+        event.struct[:x] = pos_abs.left - frame.left
+        event.struct[:y] = pos_abs.top  - frame.top
       end
       @event_handler[event.type].call(event) if @event_handler[event.type]
     end
@@ -182,7 +217,7 @@ module CappX11
       X11::Xlib::XTranslateCoordinates(display.to_native, to_native,
         root_win.to_native, left, top, left_abs, top_abs, child)
 
-      { left: left_abs.read_int, top: top_abs.read_int }
+      Struct.new(left: left_abs.read_int, top: top_abs.read_int)
     end
   end
 end
