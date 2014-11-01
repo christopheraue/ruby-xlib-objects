@@ -77,8 +77,8 @@ module CappX11
       content_size = self.content_size
       frame = self.frame
       {
-        width:  content_size[:width]  - frame[:width],
-        height: content_size[:height] - frame[:height]
+        width:  content_size[:width]  + frame[:left] + frame[:right],
+        height: content_size[:height] + frame[:top]  + frame[:bottom]
       }
     end
 
