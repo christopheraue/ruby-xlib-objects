@@ -52,7 +52,7 @@ module CappX11
     end
 
     def frame
-      frame = property(:_NET_FRAME_EXTENTS) || [0, 0, 0, 0]
+      frame = (property(:_NET_FRAME_EXTENTS) || [0, 0, 0, 0])
       { left: frame[0], top: frame[2], right: frame[1], bottom: frame[3] }
     end
 
