@@ -46,6 +46,12 @@ module CappX11
       size[:height]
     end
 
+    def frame
+      frame = property(:_NET_FRAME_EXTENTS)
+      Struct.new(left: frame[0], top: frame[2], right: frame[1],
+        bottom: frame[4])
+    end
+
     def size
       attr = attributes
       { width: attr[:width], height: attr[:height] }
