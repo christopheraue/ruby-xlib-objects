@@ -27,11 +27,11 @@ module CappX11
     end
 
     def content_left
-      content_position.left
+      content_position[:left]
     end
 
     def content_top
-      content_position.top
+      content_position[:top]
     end
 
     def content_position
@@ -39,56 +39,55 @@ module CappX11
     end
 
     def content_width
-      content_size.width
+      content_size[:width]
     end
 
     def content_height
-      content_size.height
+      content_size[:height]
     end
 
     def content_size
       attr = attributes
-      Struct.new(width: attr[:width], height: attr[:height])
+      { width: attr[:width], height: attr[:height] }
     end
 
     def frame
       frame = property(:_NET_FRAME_EXTENTS)
-      Struct.new(left: frame[0], top: frame[2], right: frame[1],
-        bottom: frame[4])
+      { left: frame[0], top: frame[2], right: frame[1], bottom: frame[4] }
     end
 
     def position
       content_position = self.content_position
       frame = self.frame
-      Struct.new(
-        left: content_position.left - frame.left,
-        top:  content_position.top  - frame.top
-      )
+      {
+        left: content_position[:left] - frame[:left],
+        top:  content_position[:top]  - frame[:top]
+      }
     end
 
     def left
-      position.left
+      position[:left]
     end
 
     def top
-      position.top
+      position[:top]
     end
 
     def size
       content_size = self.content_size
       frame = self.frame
-      Struct.new(
-        width:  content_size.width  - frame.width,
-        height: content_size.height - frame.height
-      )
+      {
+        width:  content_size[:width]  - frame[:width],
+        height: content_size[:height] - frame[:height]
+      }
     end
 
     def width
-      position.width
+      size[:width]
     end
 
     def height
-      position.height
+      size[:height]
     end
 
     def map
@@ -195,8 +194,8 @@ module CappX11
       if event.respond_to? :x and event.respond_to? :y
         pos_abs = relative_to_root(0, 0)
         frame = self.frame
-        event.struct[:x] = pos_abs.left - frame.left
-        event.struct[:y] = pos_abs.top  - frame.top
+        event.struct[:x] = pos_abs[:left] - frame[:left]
+        event.struct[:y] = pos_abs[:top]  - frame[:top]
       end
       @event_handler[event.type].call(event) if @event_handler[event.type]
     end
@@ -217,7 +216,7 @@ module CappX11
       X11::Xlib::XTranslateCoordinates(display.to_native, to_native,
         root_win.to_native, left, top, left_abs, top_abs, child)
 
-      Struct.new(left: left_abs.read_int, top: top_abs.read_int)
+      { left: left_abs.read_int, top: top_abs.read_int }
     end
   end
 end
