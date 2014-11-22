@@ -1,10 +1,11 @@
 module CappX11
   class Event
-    attr_reader :struct
+    attr_reader :struct, :name
 
     def initialize(union)
       event = union[:type]
       union_member = X11::Xlib::EVENT_TO_UNION_MEMBER[event]
+      @name = X11::Xlib::EVENT.key(event)
       @struct = union[union_member]
 
       @struct.members.each do |key|
