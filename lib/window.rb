@@ -197,7 +197,7 @@ module CappX11
     def off(event_name)
       raise "Unknown event #{event_name}." unless X11::Xlib::EVENT[event_name]
 
-      @event_handler[X11::Xlib::EVENT[event_name]] = []
+      @event_handler[X11::Xlib::EVENT[event_name]] = nil
       self
     end
 
@@ -215,7 +215,10 @@ module CappX11
         end
       end
 
-      @event_handler[event.type].each{ |block| block.call(event) }
+      if @event_handler[event.type]
+        @event_handler[event.type].each{ |block| block.call(event) }
+      end
+
       self
     end
 
