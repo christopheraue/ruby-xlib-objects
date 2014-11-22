@@ -22,6 +22,7 @@ module CappX11
       @event_handler = {}
     end
 
+    # Queries
     def to_native
       @native
     end
@@ -90,38 +91,6 @@ module CappX11
       size[:height]
     end
 
-    def map
-      X11::Xlib.XMapWindow(display.to_native, to_native)
-      display.flush
-    end
-
-    def unmap
-      X11::Xlib.XUnmapWindow(display.to_native, to_native)
-      display.flush
-    end
-
-    def minimize
-      X11::Xlib.XIconifyWindow(display.to_native, to_native, screen.number)
-      display.flush
-    end
-
-    def iconify
-      minimize
-    end
-
-    def unminimize
-      map
-    end
-
-    def deiconify
-      unminimize
-    end
-
-    def raise
-      X11::Xlib.XRaiseWindow(display.to_native, to_native)
-      display.flush
-    end
-
     def map_state
       X11::Xlib::MAP_STATE[attributes[:map_state]]
     end
@@ -134,11 +103,6 @@ module CappX11
       map_state == 'IsViewable'
     end
 
-    def move_resize(x, y, width, height)
-      X11::Xlib.XMoveResizeWindow(display.to_native, to_native, x, y, width, height)
-      display.flush
-    end
-
     def screen
       Screen.new(display, attributes[:screen])
     end
@@ -149,6 +113,52 @@ module CappX11
 
     def properties
       Property.all(self)
+    end
+
+    # Commands
+    def move_resize(x, y, width, height)
+      X11::Xlib.XMoveResizeWindow(display.to_native, to_native, x, y, width, height)
+      display.flush
+      self
+    end
+
+    def map
+      X11::Xlib.XMapWindow(display.to_native, to_native)
+      display.flush
+      self
+    end
+
+    def unmap
+      X11::Xlib.XUnmapWindow(display.to_native, to_native)
+      display.flush
+      self
+    end
+
+    def minimize
+      X11::Xlib.XIconifyWindow(display.to_native, to_native, screen.number)
+      display.flush
+      self
+    end
+
+    def iconify
+      minimize
+      self
+    end
+
+    def unminimize
+      map
+      self
+    end
+
+    def deiconify
+      unminimize
+      self
+    end
+
+    def raise
+      X11::Xlib.XRaiseWindow(display.to_native, to_native)
+      display.flush
+      self
     end
 
     def listen_to(event_mask)
@@ -179,14 +189,15 @@ module CappX11
     def on(event_name, &block)
       raise "Unknown event #{event_name}." unless X11::Xlib::EVENT[event_name]
 
-      @event_handler[X11::Xlib::EVENT[event_name]] = block
+      @event_handler[X11::Xlib::EVENT[event_name]] ||= []
+      @event_handler[X11::Xlib::EVENT[event_name]] << block
       self
     end
 
     def off(event_name)
       raise "Unknown event #{event_name}." unless X11::Xlib::EVENT[event_name]
 
-      @event_handler[X11::Xlib::EVENT[event_name]] = nil
+      @event_handler[X11::Xlib::EVENT[event_name]] = []
       self
     end
 
@@ -197,7 +208,15 @@ module CappX11
         event.struct[:x] = pos_abs[:left] - frame[:left]
         event.struct[:y] = pos_abs[:top]  - frame[:top]
       end
-      @event_handler[event.type].call(event) if @event_handler[event.type]
+
+      if @struct[:atom]
+        event.define_singleton_method(:property_name) do
+          X11::Xlib.XGetAtomName(display.to_native, @struct[:atom])
+        end
+      end
+
+      @event_handler[event.type].each{ |block| block.call(event) }
+      self
     end
 
     private
