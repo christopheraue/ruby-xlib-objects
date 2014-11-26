@@ -107,8 +107,12 @@ module CappX11
       Screen.new(display, attributes[:screen])
     end
 
-    def property(name)
-      Property.get(self, name)
+    def property(name, value = nil)
+      if value
+        Property.set(self, name, value)
+      else
+        Property.get(self, name)
+      end
     end
 
     def properties
