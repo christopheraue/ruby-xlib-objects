@@ -9,7 +9,7 @@ module CappX11
       @struct = union[union_member]
 
       @struct.members.each do |key|
-        self.define_singleton_method(key) do
+        define_singleton_method(key) do
           @struct[key]
         end
       end

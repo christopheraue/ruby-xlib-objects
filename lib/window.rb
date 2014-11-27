@@ -13,115 +13,41 @@ module CappX11
       end
     end
 
-    attr_reader :display
+    attr_reader :display, :to_native
 
     def initialize(display, window_id)
       @display = display
-      @native = window_id
-      @event_mask = 0
-      @event_handler = {}
+      @to_native = window_id
+      @event_handler = CappX11::Window::EventHandler.new(self)
     end
 
     # Queries
-    def to_native
-      @native
+    def attribute(name)
+      attributes = X11::Xlib::WindowAttributes.new
+      X11::Xlib::XGetWindowAttributes(display.to_native, to_native, attributes.pointer)
+      attributes[name.to_sym]
     end
 
-    def content_left
-      content_position[:left]
+    def property(name)
+      Property.get(name)
     end
 
-    def content_top
-      content_position[:top]
-    end
+    def absolute_position
+      x_abs = FFI::MemoryPointer.new :int
+      y_abs = FFI::MemoryPointer.new :int
+      child = FFI::MemoryPointer.new :Window
+      root_win = display.screen.root_window
 
-    def content_position
-      relative_to_root(0, 0)
-    end
+      X11::Xlib::XTranslateCoordinates(display.to_native, window.to_native,
+        root_win.to_native, 0, 0, x_abs, y_abs, child)
 
-    def content_width
-      content_size[:width]
-    end
-
-    def content_height
-      content_size[:height]
-    end
-
-    def content_size
-      attr = attributes
-      { width: attr[:width], height: attr[:height] }
-    end
-
-    def frame
-      frame = (property(:_NET_FRAME_EXTENTS) || [0, 0, 0, 0])
-      { left: frame[0], top: frame[2], right: frame[1], bottom: frame[3] }
-    end
-
-    def position
-      content_position = self.content_position
-      frame = self.frame
-      {
-        left: content_position[:left] - frame[:left],
-        top:  content_position[:top]  - frame[:top]
-      }
-    end
-
-    def left
-      position[:left]
-    end
-
-    def top
-      position[:top]
-    end
-
-    def size
-      content_size = self.content_size
-      frame = self.frame
-      {
-        width:  content_size[:width]  + frame[:left] + frame[:right],
-        height: content_size[:height] + frame[:top]  + frame[:bottom]
-      }
-    end
-
-    def width
-      size[:width]
-    end
-
-    def height
-      size[:height]
-    end
-
-    def map_state
-      X11::Xlib::MAP_STATE[attributes[:map_state]]
-    end
-
-    def mapped?
-      map_state != 'IsUnmapped'
-    end
-
-    def visible?
-      map_state == 'IsViewable'
-    end
-
-    def screen
-      Screen.new(display, attributes[:screen])
-    end
-
-    def property(name, value = nil)
-      if value
-        Property.set(self, name, value)
-      else
-        Property.get(self, name)
-      end
-    end
-
-    def properties
-      Property.all(self)
+      { x: x_abs.read_int, y: y_abs.read_int }
     end
 
     # Commands
     def move_resize(x, y, width, height)
-      X11::Xlib.XMoveResizeWindow(display.to_native, to_native, x, y, width, height)
+      X11::Xlib.XMoveResizeWindow(display.to_native, to_native, x, y, width,
+        height)
       display.flush
       self
     end
@@ -138,24 +64,9 @@ module CappX11
       self
     end
 
-    def minimize
+    def iconify
       X11::Xlib.XIconifyWindow(display.to_native, to_native, screen.number)
       display.flush
-      self
-    end
-
-    def iconify
-      minimize
-      self
-    end
-
-    def unminimize
-      map
-      self
-    end
-
-    def deiconify
-      unminimize
       self
     end
 
@@ -165,85 +76,19 @@ module CappX11
       self
     end
 
-    def listen_to(event_mask)
-      raise "Unknown event #{event_mask}." unless X11::Xlib::EVENT_MASK[event_mask]
-
-      @event_mask |= X11::Xlib::EVENT_MASK[event_mask]
-      begin
-        X11::Xlib.XSelectInput(display.to_native, to_native, @event_mask)
-      rescue
-        # rescue from BadWindow errors, it the window has been destroyed
-        raise "The window with id '#{to_native}' no longer exists."
-      end
-      display.flush
+    def on(mask, type, &callback)
+      @event_handler.on(mask, type, &callback)
       self
     end
 
-    def turn_deaf_on(event_mask)
-      raise "Unknown event #{event_mask}." unless X11::Xlib::EVENT_MASK[event_mask]
-
-      @event_mask &= ~X11::Xlib::EVENT_MASK[event_mask]
-      # rescue from BadWindow errors, it the window has been destroyed. Ignore
-      # it, since there won't be any events any more anyway
-      X11::Xlib.XSelectInput(display.to_native, to_native, @event_mask) rescue
-      display.flush
-      self
-    end
-
-    def on(event_name, &block)
-      raise "Unknown event #{event_name}." unless X11::Xlib::EVENT[event_name]
-
-      event_type = X11::Xlib::EVENT[event_name]
-      @event_handler[event_type] ||= []
-      @event_handler[event_type] << block
-      self
-    end
-
-    def off(event_name, block)
-      raise "Unknown event #{event_name}." unless X11::Xlib::EVENT[event_name]
-
-      @event_handler[X11::Xlib::EVENT[event_name]].delete(block)
+    def off(mask, type, callback)
+      @event_handler.off(mask, type, callback)
       self
     end
 
     def handle(event)
-      if event.respond_to? :x and event.respond_to? :y
-        pos_abs = relative_to_root(0, 0)
-        frame = self.frame
-        event.struct[:x] = pos_abs[:left] - frame[:left]
-        event.struct[:y] = pos_abs[:top]  - frame[:top]
-      end
-
-      if @struct[:atom]
-        event.define_singleton_method(:property_name) do
-          X11::Xlib.XGetAtomName(display.to_native, @struct[:atom])
-        end
-      end
-
-      if @event_handler[event.type]
-        @event_handler[event.type].each{ |block| block.call(event) }
-      end
-
+      @event_handler.handle(event)
       self
-    end
-
-    private
-    def attributes
-      attributes = X11::Xlib::WindowAttributes.new
-      X11::Xlib::XGetWindowAttributes(display.to_native, to_native, attributes.pointer)
-      attributes
-    end
-
-    def relative_to_root(left, top)
-      left_abs = FFI::MemoryPointer.new :int
-      top_abs  = FFI::MemoryPointer.new :int
-      child    = FFI::MemoryPointer.new :Window
-      root_win = screen.root_window
-
-      X11::Xlib::XTranslateCoordinates(display.to_native, to_native,
-        root_win.to_native, left, top, left_abs, top_abs, child)
-
-      { left: left_abs.read_int, top: top_abs.read_int }
     end
   end
 end
