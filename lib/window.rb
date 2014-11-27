@@ -29,7 +29,11 @@ module CappX11
     end
 
     def property(name)
-      Property.get(name)
+      Property.get(self, name)
+    end
+
+    def set_property(name, value)
+      Property.set(self, name, value)
     end
 
     def absolute_position

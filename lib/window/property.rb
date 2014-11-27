@@ -43,6 +43,10 @@ module CappX11
         })
       end
 
+      def set(window, name, value)
+        nil
+      end
+
       def all(window)
         display_ptr = window.display.to_native
         window_id = window.to_native
