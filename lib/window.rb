@@ -18,7 +18,7 @@ module CappX11
     def initialize(display, window_id)
       @display = display
       @to_native = window_id
-      @event_handler = CappX11::Window::EventHandler.new(self)
+      @event_handler = EventHandler.new(self)
     end
 
     # Queries
@@ -29,11 +29,11 @@ module CappX11
     end
 
     def property(name)
-      Property.get(self, name)
+      Property.new(self, name).get
     end
 
     def set_property(name, value)
-      Property.set(self, name, value)
+      Property.new(self, name).set(value)
     end
 
     def absolute_position

@@ -1,6 +1,6 @@
 GIT
   remote: file:///home/c/projects/private/capp/app/x11-ffi
-  revision: caabd69c3b31bdcb8a382172d92560f021518266
+  revision: 42d6b42596a3bc020a8a5df72e6cbeccbaacb9d7
   branch: master
   specs:
     x11-ffi (0.0.1)

@@ -1,15 +1,14 @@
 module CappX11
-  module Window::Property
-    class << self
-      def get(window, name)
-        # request data
-        atom = if name.is_a? Integer
-                 name
-               else
-                 X11::Xlib.XInternAtom(window.display.to_native, name.to_s, true)
-               end
+  module Window
+    class Property
+      def initialize(window, name)
+        @window = window
+        @name = name
+        @atom = Atom.new(window.display, name)
+      end
 
-        return nil if atom == 0 # property does not exist
+      def get
+        return unless @atom.exists?
 
         data_offset = 0           # data offset
         data_max_length = 2**16   # max data length, multiple of 32 bit
@@ -18,128 +17,147 @@ module CappX11
 
         # response data
         pointer     = FFI::MemoryPointer.new :pointer
-        type        = FFI::MemoryPointer.new :Atom
-        item_size   = FFI::MemoryPointer.new :int
+        item_type   = FFI::MemoryPointer.new :Atom
+        item_width  = FFI::MemoryPointer.new :int
         item_count  = FFI::MemoryPointer.new :ulong
         cutoff_data = FFI::MemoryPointer.new :ulong
 
         # do and validate the request
         status = X11::Xlib.XGetWindowProperty(
-          window.display.to_native, window.to_native,
-          atom, data_offset, data_max_length, allow_deleted, requested_type,
-          type, item_size, item_count, cutoff_data, pointer
+          @window.display.to_native, @window.to_native, @atom,
+          data_offset, data_max_length, allow_deleted, requested_type,
+          item_type, item_width, item_count, cutoff_data, pointer
         )
 
-        raise 'Retrieve the property failed with error status.' unless status == 0
-        #raise 'Cut property data off after maximal length.' if cutoff_data.read_ulong != 0
+        raise 'Getting property value failed.' unless status == 0
 
-        return nil if pointer.read_pointer.null? # property is not set for the window
+        return if pointer.read_pointer.null? # property is not set for the window
+
+        # extract response data
+        item_type = Atom.new(window.display, item_type.read_int).name
+        item_width = item_width.read_int
+        item_count = item_count.read_int
+
+        return if item_count == 0
 
         # get the property's value
-        get_value(window, pointer, {
-          item_size: item_size.read_int,
-          item_count: item_count.read_ulong,
-          type: X11::Xlib.XGetAtomName(window.display.to_native, type.read_int).to_sym
-        })
+        bytes = read_bytes(pointer, item_width, item_count)
+        items = bytes_to_items(bytes, item_type)
+
+        return if items.empty?
+
+        items = items_to_objects(items, item_type)
+
+        items.length == 1 ? items.first : items
       end
 
-      def set(window, name, value)
-        nil
-      end
+      def set(value)
+        items = value.is_a?(Array) ? value : [value]
+        item_count = items.size
+        item_type = type_from_item(items.first)
+        item_width = width_from_type(type)
+        bytes = items_to_bytes(items, item_type)
 
-      def all(window)
-        display_ptr = window.display.to_native
-        window_id = window.to_native
-
-        # query list of properties (comes back as list of atoms)
-        count_ptr = FFI::MemoryPointer.new :int
-        atoms_ptr = X11::Xlib.XListProperties(display_ptr, window_id, count_ptr)
-        count = count_ptr.read_int
-
-        # map atoms to names
-        names = atoms_ptr.read_array_of_ulong(count).map do |atom|
-          X11::Xlib.XGetAtomName(display_ptr, atom)
-        end
-
-        # free atom list
-        X11::Xlib.XFree(atoms_ptr)
-
-        # map names to properties
-        props = names.map do |name|
-          [name.to_sym, get(window, name)]
-        end
-
-        props.to_h
+        X11::Xlib.XChangeProperty(
+          @window.display.to_native, @window.to_native, @atom,
+          item_type, item_width, X11::Xlib::PROP_MODE_REPLACE, bytes, item_count
+        )
       end
 
       private
-      def get_value(window, pointer, data_options)
-        raw_data = read_raw_data(pointer, data_options)
-        parse_raw_data(window, raw_data, data_options)
+      def read_bytes(pointer, width, count)
+        pointer.read_pointer.read_string(count*native_width(width))
       end
 
-      def read_raw_data(pointer, data_options)
-        item_size = data_options[:item_size]
-        item_count  = data_options[:item_count]
-
-        data_length = item_count * item_size_in_byte(item_size)
-        pointer.read_pointer.read_string(data_length)
+      def native_width(width)
+        # translate word size to platform dependent bit count
+        FFI.type_size({ 8 => :char, 16 => :short, 32 => :long }[width])
       end
 
-      def parse_raw_data(window, data, data_options)
-        value = if [:STRING, :UTF8_STRING].include?(data_options[:type])
-                  parse_string_data(data, data_options)
-                else
-                  parse_non_string_data(data, data_options)
-                end
+      def width(native_width)
+        { char: 8, short: 16, long: 32 }[native_width]
+      end
 
-        return unless value
+      def bytes_to_items(bytes, type)
+        bytes.unpack(format(type))
+      end
 
-        if data_options[:type] == :ATOM
-          value.map! do |atom|
-            X11::Xlib.XGetAtomName(window.display.to_native, atom)
-          end
+      def items_to_bytes(items, type)
+        items.pack(format(type))
+      end
+
+      def format(type)
+        case type
+        when :CARDINAL    then 'I!*'
+        when :INTEGER     then 'i!*'
+        when :ATOM        then 'L!*'
+        when :WINDOW      then 'L!*'
+        when :STRING      then 'Z*'
+        when :UTF8_STRING then 'Z*'
+        else 'A'
         end
-
-        value.length <= 1 ? value.first : value
       end
 
-      def parse_string_data(data, data_options)
-        if data_options[:type] == :STRING
-          data.force_encoding('ASCII-8BIT')
-        else
-          data.force_encoding('UTF-8')
-        end
-
-        data.split("\0")
-      end
-
-      def parse_non_string_data(data, data_options)
-        return if data_options[:item_count] == 0
-
-        directive = case data_options[:type]
-                    when :CARDINAL    then 'I!'
-                    when :ATOM        then 'L!'
-                    when :INTEGER     then 'i!'
-                    when :WINDOW      then 'L!'
-                    else return ['Query handler not implemented for this property type.']
+      def items_to_objects(items, type)
+        transform = case type
+                    when :UTF8_STRING
+                      Proc.new{ |s| s.force_encoding('UTF-8') }
+                    when :ATOM
+                      Proc.new{ |a| Atom.new(@window.display, a) }
+                    when :WINDOW
+                      Proc.new{ |w| Window.new(@window.dispay, w) }
+                    else
+                      Proc.new{ |a| a }
                     end
 
-        slice_size = data.bytes.length / data_options[:item_count]
-        slices = data.each_char.each_slice(slice_size).map(&:join)
-        slices.map do |slice|
-          slice.unpack(directive)
-        end.flatten
+        items.map(&transform)
       end
 
-      def item_size_in_byte(item_size)
-        # translate word size to platform dependent byte count
-        FFI.type_size({
-          0 => :void,
-          8 => :char,
-          16 => :short,
-          32 => :long
-        }[item_size])
+      def objects_to_items(objects, type)
+        transform = case type
+                    when :UTF8_STRING
+                      Proc.new{ |s| s.force_encoding('ASCII-8BIT') }
+                    when :ATOM
+                      Proc.new{ |a| a.to_native }
+                    when :WINDOW
+                      Proc.new{ |w| w.to_native }
+                    else
+                      Proc.new{ |a| a }
+                    end
+
+        objects.map(&transform)
+      end
+
+      def type_from_item(item)
+        if item.is_a? Window
+          :WINDOW
+        elsif item.is_a? Atom
+          :ATOM
+        elsif item.is_a? Integer
+          if item >= 0
+            :CARDINAL
+          else
+            :INTEGER
+          end
+        elsif item.is_a? String
+          if item.encoding == Encoding::UTF_8
+            :UTF8_STRING
+          else
+            :STRING
+          end
+        end
+      end
+
+      def width_from_type(type)
+        case type
+        when :CARDINAL    then 16
+        when :INTEGER     then 16
+        when :ATOM        then 32
+        when :WINDOW      then 32
+        when :STRING      then 8
+        when :UTF8_STRING then 8
+        else 8
+        end
       end
     end
   end
