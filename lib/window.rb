@@ -1,18 +1,5 @@
 module CappX11
   class Window
-    class << self
-      def new(display, window_id, reinitialize = false)
-        @windows ||= {}
-        @windows[display.name] ||= {}
-
-        if reinitialize
-          @windows[display.name][window_id] = super(display, window_id)
-        else
-          @windows[display.name][window_id] ||= super(display, window_id)
-        end
-      end
-    end
-
     attr_reader :display, :to_native
 
     def initialize(display, window_id)
@@ -22,10 +9,17 @@ module CappX11
     end
 
     # Queries
+    alias_method :id, :to_native
+
     def attribute(name)
       attributes = X11::Xlib::WindowAttributes.new
-      X11::Xlib::XGetWindowAttributes(display.to_native, to_native, attributes.pointer)
+      X11::Xlib::XGetWindowAttributes(display.to_native, to_native, attributes.
+        pointer)
       attributes[name.to_sym]
+    end
+
+    def method_missing(name)
+      attribute(name)
     end
 
     def property(name)

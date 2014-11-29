@@ -7,27 +7,11 @@ module CappX11
           ":#{match[1]}" if match
         end.compact
       end
-
-      def all
-        names.map{ |name| open(name) }
-      end
-
-      def open(name, reopen = false)
-        @displays ||= {}
-
-        if reopen
-          @displays[name] = X11::Xlib.XOpenDisplay(name)
-        else
-          @displays[name] ||= X11::Xlib.XOpenDisplay(name)
-        end
-
-        raise ArgumentError, "Unknown display #{name}" if @displays[name].null?
-
-        new(@displays[name])
-      end
     end
 
-    def initialize(display_pointer)
+    def initialize(name)
+      display_pointer = X11::Xlib.XOpenDisplay(name)
+      raise ArgumentError, "Unknown display #{name}" if display_pointer.null?
       @struct = X11::Xlib::Display.new(display_pointer)
     end
 

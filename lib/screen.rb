@@ -11,43 +11,37 @@ module CappX11
       @struct.pointer
     end
 
-    def number
-      X11::Xlib::XScreenNumberOfScreen(to_native)
-    end
-
     def root_window
       window_id = X11::Xlib::XRootWindowOfScreen(self.to_native)
       Window.new(display, window_id)
     end
 
-    def sub_screens
-      outputs.map do |output|
-        sub_screen = SubScreen.new(self, output[:name])
-        X11::Xrandr.XRRFreeOutputInfo(output.pointer)
-        sub_screen
+    def crtcs
+      (0..resources[:ncrtcs]-1).map do |crtc_number|
+        crtc_id(resources[:crtcs], crtc_number)
+      end.map do |crtc_id|
+        Crtc.new(screen, crtc_id)
       end
-    end
-
-    def outputs
-      screen_res = screen_resources
-      outputs = (0..screen_res[:noutput]-1).map do |output_pos|
-        output_id = output_id(screen_res[:outputs], output_pos)
-        output(screen_res, output_id)
-      end
-      X11::Xrandr.XRRFreeScreenResources(screen_res.pointer)
-      outputs
     end
 
     private
-    def screen_resources
-      resources_ptr = X11::Xrandr.XRRGetScreenResources(
-        display.to_native, root_window.to_native)
-      X11::Xrandr::XRRScreenResources.new(resources_ptr)
+    def resources
+      unless @resources
+        resources_ptr = X11::Xrandr.XRRGetScreenResources(display.to_native,
+          root_window.to_native)
+        @resources = X11::Xrandr::XRRScreenResources.new(resources_ptr)
+        X11::Xrandr.XRRFreeScreenResources(resources_ptr)
+      end
+
+      @resources
     end
 
-    def output_id(pointer, position)
-      offset = position * (FFI.type_size(:RROutput))
-      (pointer + offset).read_ulong
+    def read_item(pointer, item_pos, item_size)
+      (pointer + item_pos*item_size).read_ulong
+    end
+
+    def crtc_id(pointer, number)
+      read_item(pointer, number, FFI.type_size(:RRCrtc))
     end
 
     def output(screen_resources, output_id)

@@ -76,6 +76,18 @@ module CappX11
         X11::Xlib.XFlush(display.to_native)
       end
 
+      def select_xrr_events
+        # A XRRScreenChangeNotifyEvent is sent to a client that has requested
+        # notification whenever the screen configuration is changed. A client
+        # can perform this request by calling XRRSelectInput, passing the
+        # display, the root window, and the RRScreenChangeNotifyMask mask.
+
+        # see also
+        # http://cgit.freedesktop.org/xorg/app/xev/tree/
+        X11::Xlib.XRRSelectInput(display.to_native, window.to_native, @xrr_event_mask)
+        X11::Xlib.XFlush(display.to_native)
+      end
+
       def display
         @window.display
       end
