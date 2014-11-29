@@ -52,37 +52,36 @@ module CappX11
     def move_resize(x, y, width, height)
       X11::Xlib.XMoveResizeWindow(display.to_native, to_native, x, y, width,
         height)
-      display.flush
+      X11::Xlib.XFlush(display.to_native)
       self
     end
 
     def map
       X11::Xlib.XMapWindow(display.to_native, to_native)
-      display.flush
+      X11::Xlib.XFlush(display.to_native)
       self
     end
 
     def unmap
       X11::Xlib.XUnmapWindow(display.to_native, to_native)
-      display.flush
+      X11::Xlib.XFlush(display.to_native)
       self
     end
 
     def iconify
       X11::Xlib.XIconifyWindow(display.to_native, to_native, screen.number)
-      display.flush
+      X11::Xlib.XFlush(display.to_native)
       self
     end
 
     def raise
       X11::Xlib.XRaiseWindow(display.to_native, to_native)
-      display.flush
+      X11::Xlib.XFlush(display.to_native)
       self
     end
 
     def on(mask, type, &callback)
       @event_handler.on(mask, type, &callback)
-      self
     end
 
     def off(mask, type, callback)

@@ -71,7 +71,7 @@ class CappX11::Window::EventHandler
   
   def select_events
     X11::Xlib.XSelectInput(display.to_native, window.to_native, @event_mask)
-    display.flush
+    X11::Xlib.XFlush(display.to_native)
   end
   
   def display

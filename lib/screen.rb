@@ -20,13 +20,6 @@ module CappX11
       Window.new(display, window_id)
     end
 
-    def client_windows
-      window_ids = root_window.property(:_NET_CLIENT_LIST)
-      window_ids.map do |win_id|
-        Window.new(display, win_id)
-      end
-    end
-
     def sub_screens
       outputs.map do |output|
         sub_screen = SubScreen.new(self, output[:name])
@@ -37,7 +30,7 @@ module CappX11
 
     def outputs
       screen_res = screen_resources
-      outputs = (0...screen_res[:noutput]).map do |output_pos|
+      outputs = (0..screen_res[:noutput]-1).map do |output_pos|
         output_id = output_id(screen_res[:outputs], output_pos)
         output(screen_res, output_id)
       end
