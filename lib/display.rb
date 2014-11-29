@@ -9,10 +9,10 @@ module CappX11
       end
 
       def all
-        names.map { |name| open(name) }
+        names.map{ |name| open(name) }
       end
 
-      def open(name, reopen = true)
+      def open(name, reopen = false)
         @displays ||= {}
 
         if reopen
@@ -44,7 +44,7 @@ module CappX11
     end
 
     def socket
-      UNIXSocket.for_fd(X11::Xlib.XConnectionNumber(self.to_native))
+      UNIXSocket.for_fd(X11::Xlib.XConnectionNumber(to_native))
     end
 
     def handle_events
