@@ -1,5 +1,5 @@
 module CappX11
-  module Window
+  class Window
     class Property
       def initialize(window, name)
         @window = window
