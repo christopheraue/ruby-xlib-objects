@@ -13,7 +13,7 @@ module XlibObj
 
     private
     def type
-      @type ||= @event[:type]
+      @event[:type]
     end
 
     def union_member
@@ -63,7 +63,7 @@ module XlibObj
     end
 
     def event_base
-      self.class.event_base(@display)
+      self.class.event_base(@event[:display])
     end
 
     class << self
