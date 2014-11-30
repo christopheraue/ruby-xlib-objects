@@ -1,4 +1,4 @@
-module CappXlib
+module XlibObj
   class Event
     attr_reader :struct, :name
 

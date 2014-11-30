@@ -1,4 +1,4 @@
-module CappXlib
+module XlibObj
   class Atom
     def intialize(display, atom)
       @display = display

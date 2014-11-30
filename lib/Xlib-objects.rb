@@ -1,7 +1,7 @@
 require 'bundler/setup'
 Bundler.require(:default)
 
-module CappXlib; end
+module XlibObj; end
 
 require_relative 'atom'
 require_relative 'display'

@@ -1,4 +1,4 @@
-module CappXlib
+module XlibObj
   class Window
     class Property
       def initialize(window, name)

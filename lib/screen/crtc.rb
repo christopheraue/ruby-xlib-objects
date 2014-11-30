@@ -1,4 +1,4 @@
-module CappXlib
+module XlibObj
   class Screen
     class Crtc
       def initialize(screen, id)

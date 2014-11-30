@@ -1,4 +1,4 @@
-module CappXlib
+module XlibObj
   class Window
     attr_reader :display, :to_native
 

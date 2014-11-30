@@ -1,4 +1,4 @@
-module CappXlib
+module XlibObj
   class Screen
     attr_reader :display
 

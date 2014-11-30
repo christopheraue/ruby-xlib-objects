@@ -1,4 +1,4 @@
-module CappXlib
+module XlibObj
   class Display
     class << self
       def names
