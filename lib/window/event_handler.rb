@@ -29,20 +29,20 @@ module CappX11
       def add_event_mask(mask)
         check_event_mask(mask)
         return if mask_in_use?(mask)
-        @event_mask |= X11::Xlib::EVENT_MASK[mask]
+        @event_mask |= X11::EVENT_MASK[mask]
         select_events
       end
 
       def remove_event_mask(mask)
         check_event_mask(mask)
         return if mask_in_use?(mask)
-        @event_mask &= ~X11::Xlib::EVENT_MASK[mask]
+        @event_mask &= ~X11::EVENT_MASK[mask]
         select_events
       end
 
       def add_event_handler(mask, event, &handler)
         check_event(event)
-        event_id = X11::Xlib::EVENT[event]
+        event_id = X11::EVENT[event]
         @event_handlers[event_id] ||= {}
         @event_handlers[event_id][mask] ||= []
         @event_handlers[event_id][mask] << handler
@@ -51,7 +51,7 @@ module CappX11
 
       def remove_event_handler(mask, event, handler)
         check_event(event)
-        event_id = X11::Xlib::EVENT[event]
+        event_id = X11::EVENT[event]
         @event_handlers[event_id][mask].delete(handler)
         @event_handlers[event_id].delete(mask) if @event_handlers[event_id][mask].empty?
         @event_handlers.delete(event_id) if @event_handlers[event_id].empty?
@@ -64,16 +64,16 @@ module CappX11
       end
 
       def check_event_mask(mask)
-        raise "Unknown event #{mask}." unless X11::Xlib::EVENT_MASK[mask]
+        raise "Unknown event #{mask}." unless X11::EVENT_MASK[mask]
       end
 
       def check_event(event)
-        raise "Unknown event #{event}." unless X11::Xlib::EVENT[event]
+        raise "Unknown event #{event}." unless X11::EVENT[event]
       end
 
       def select_events
-        X11::Xlib.XSelectInput(display.to_native, window.to_native, @event_mask)
-        X11::Xlib.XFlush(display.to_native)
+        X11.XSelectInput(display.to_native, window.to_native, @event_mask)
+        X11.XFlush(display.to_native)
       end
 
       def select_xrr_events
@@ -84,8 +84,8 @@ module CappX11
 
         # see also
         # http://cgit.freedesktop.org/xorg/app/xev/tree/
-        X11::Xlib.XRRSelectInput(display.to_native, window.to_native, @xrr_event_mask)
-        X11::Xlib.XFlush(display.to_native)
+        X11.XRRSelectInput(display.to_native, window.to_native, @xrr_event_mask)
+        X11.XFlush(display.to_native)
       end
 
       def display

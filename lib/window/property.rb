@@ -13,7 +13,7 @@ module CappX11
         data_offset = 0           # data offset
         data_max_length = 2**16   # max data length, multiple of 32 bit
         allow_deleted = false     # don't retrieve deleted properties
-        requested_type = X11::Xlib::ANY_PROPERTY_TYPE
+        requested_type = X11::ANY_PROPERTY_TYPE
 
         # response data
         pointer     = FFI::MemoryPointer.new :pointer
@@ -23,7 +23,7 @@ module CappX11
         cutoff_data = FFI::MemoryPointer.new :ulong
 
         # do and validate the request
-        status = X11::Xlib.XGetWindowProperty(
+        status = X11.XGetWindowProperty(
           @window.display.to_native, @window.to_native, @atom,
           data_offset, data_max_length, allow_deleted, requested_type,
           item_type, item_width, item_count, cutoff_data, pointer
@@ -58,9 +58,9 @@ module CappX11
         item_width = width_from_type(type)
         bytes = items_to_bytes(items, item_type)
 
-        X11::Xlib.XChangeProperty(
+        X11.XChangeProperty(
           @window.display.to_native, @window.to_native, @atom,
-          item_type, item_width, X11::Xlib::PROP_MODE_REPLACE, bytes, item_count
+          item_type, item_width, X11::PROP_MODE_REPLACE, bytes, item_count
         )
       end
 

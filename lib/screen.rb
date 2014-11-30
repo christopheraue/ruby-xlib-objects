@@ -4,7 +4,7 @@ module CappX11
 
     def initialize(display, screen_pointer)
       @display = display
-      @struct = X11::Xlib::Screen.new(screen_pointer)
+      @struct = X11::Screen.new(screen_pointer)
     end
 
     def to_native
@@ -12,7 +12,7 @@ module CappX11
     end
 
     def root_window
-      window_id = X11::Xlib::XRootWindowOfScreen(self.to_native)
+      window_id = X11::XRootWindowOfScreen(self.to_native)
       Window.new(display, window_id)
     end
 
@@ -27,10 +27,10 @@ module CappX11
     private
     def resources
       unless @resources
-        resources_ptr = X11::Xrandr.XRRGetScreenResources(display.to_native,
+        resources_ptr = X11.XRRGetScreenResources(display.to_native,
           root_window.to_native)
-        @resources = X11::Xrandr::XRRScreenResources.new(resources_ptr)
-        X11::Xrandr.XRRFreeScreenResources(resources_ptr)
+        @resources = X11::XRRScreenResources.new(resources_ptr)
+        X11.XRRFreeScreenResources(resources_ptr)
       end
 
       @resources
@@ -45,9 +45,9 @@ module CappX11
     end
 
     def output(screen_resources, output_id)
-      output_ptr = X11::Xrandr.XRRGetOutputInfo(display.to_native,
+      output_ptr = X11.XRRGetOutputInfo(display.to_native,
         screen_resources.pointer, output_id)
-      X11::Xrandr::XRROutputInfo.new(output_ptr)
+      X11::XRROutputInfo.new(output_ptr)
     end
   end
 end

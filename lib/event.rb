@@ -4,8 +4,8 @@ module CappX11
 
     def initialize(union)
       event = union[:type]
-      union_member = X11::Xlib::EVENT_TO_UNION_MEMBER[event]
-      @name = X11::Xlib::EVENT.key(event)
+      union_member = X11::EVENT_TO_UNION_MEMBER[event]
+      @name = X11::EVENT.key(event)
       @struct = union[union_member]
 
       @struct.members.each do |key|

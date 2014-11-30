@@ -27,13 +27,13 @@ module CappX11
       private
       def attributes
         unless @attributes
-          screen_resources_ptr = X11::Xrandr.XRRGetScreenResources(@screen.
+          screen_resources_ptr = X11.XRRGetScreenResources(@screen.
             display.to_native, @screen.root_window.to_native)
-          crtc_info_ptr = X11::Xrandr.XRRGetCrtcInfo(@screen.display.to_native,
+          crtc_info_ptr = X11.XRRGetCrtcInfo(@screen.display.to_native,
             screen_resources_ptr, @id)
-          @attributes = X11::Xrandr::XRRCrtcInfo.new(crtc_info_ptr)
-          X11::Xrandr.XRRFreeScreenResources(screen_resources_ptr)
-          X11::Xrandr.XRRFreeCrtcInfo(crtc_info_ptr)
+          @attributes = X11::XRRCrtcInfo.new(crtc_info_ptr)
+          X11.XRRFreeScreenResources(screen_resources_ptr)
+          X11.XRRFreeCrtcInfo(crtc_info_ptr)
         end
 
         @attributes
