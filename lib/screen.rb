@@ -1,10 +1,10 @@
-module CappX11
+module CappXlib
   class Screen
     attr_reader :display
 
     def initialize(display, screen_pointer)
       @display = display
-      @struct = X11::Screen.new(screen_pointer)
+      @struct = Xlib::Screen.new(screen_pointer)
     end
 
     def to_native
@@ -12,7 +12,7 @@ module CappX11
     end
 
     def root_window
-      window_id = X11::XRootWindowOfScreen(self.to_native)
+      window_id = Xlib::XRootWindowOfScreen(self.to_native)
       Window.new(display, window_id)
     end
 
@@ -27,10 +27,10 @@ module CappX11
     private
     def resources
       unless @resources
-        resources_ptr = X11.XRRGetScreenResources(display.to_native,
+        resources_ptr = Xlib.XRRGetScreenResources(display.to_native,
           root_window.to_native)
-        @resources = X11::XRRScreenResources.new(resources_ptr)
-        X11.XRRFreeScreenResources(resources_ptr)
+        @resources = Xlib::XRRScreenResources.new(resources_ptr)
+        Xlib.XRRFreeScreenResources(resources_ptr)
       end
 
       @resources
@@ -45,9 +45,9 @@ module CappX11
     end
 
     def output(screen_resources, output_id)
-      output_ptr = X11.XRRGetOutputInfo(display.to_native,
+      output_ptr = Xlib.XRRGetOutputInfo(display.to_native,
         screen_resources.pointer, output_id)
-      X11::XRROutputInfo.new(output_ptr)
+      Xlib::XRROutputInfo.new(output_ptr)
     end
   end
 end

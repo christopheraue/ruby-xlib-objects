@@ -1,4 +1,4 @@
-module CappX11
+module CappXlib
   class Screen
     class Crtc
       def initialize(screen, id)
@@ -27,13 +27,13 @@ module CappX11
       private
       def attributes
         unless @attributes
-          screen_resources_ptr = X11.XRRGetScreenResources(@screen.
+          screen_resources_ptr = Xlib.XRRGetScreenResources(@screen.
             display.to_native, @screen.root_window.to_native)
-          crtc_info_ptr = X11.XRRGetCrtcInfo(@screen.display.to_native,
+          crtc_info_ptr = Xlib.XRRGetCrtcInfo(@screen.display.to_native,
             screen_resources_ptr, @id)
-          @attributes = X11::XRRCrtcInfo.new(crtc_info_ptr)
-          X11.XRRFreeScreenResources(screen_resources_ptr)
-          X11.XRRFreeCrtcInfo(crtc_info_ptr)
+          @attributes = Xlib::XRRCrtcInfo.new(crtc_info_ptr)
+          Xlib.XRRFreeScreenResources(screen_resources_ptr)
+          Xlib.XRRFreeCrtcInfo(crtc_info_ptr)
         end
 
         @attributes

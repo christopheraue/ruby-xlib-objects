@@ -1,18 +1,18 @@
-module CappX11
+module CappXlib
   class Atom
     def intialize(display, atom)
       @display = display
       @to_native = if atom.is_a? Integer
                      atom
                    else
-                     X11.XInternAtom(@display.to_native, atom.to_s, true)
+                     Xlib.XInternAtom(@display.to_native, atom.to_s, true)
                    end
     end
 
     attr_reader :to_native
 
     def name
-      X11.XGetAtomName(@display.to_native, @atom).to_sym
+      Xlib.XGetAtomName(@display.to_native, @atom).to_sym
     end
 
     def exists?

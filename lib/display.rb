@@ -1,4 +1,4 @@
-module CappX11
+module CappXlib
   class Display
     class << self
       def names
@@ -10,9 +10,9 @@ module CappX11
     end
 
     def initialize(name)
-      display_pointer = X11.XOpenDisplay(name)
+      display_pointer = Xlib.XOpenDisplay(name)
       raise ArgumentError, "Unknown display #{name}" if display_pointer.null?
-      @struct = X11::Display.new(display_pointer)
+      @struct = Xlib::Display.new(display_pointer)
     end
 
     def to_native
@@ -28,7 +28,7 @@ module CappX11
     end
 
     def socket
-      UNIXSocket.for_fd(X11.XConnectionNumber(to_native))
+      UNIXSocket.for_fd(Xlib.XConnectionNumber(to_native))
     end
 
     def handle_events
@@ -37,12 +37,12 @@ module CappX11
 
     private
     def pending_events
-      X11.XPending(to_native)
+      Xlib.XPending(to_native)
     end
 
     def next_event
-      x_event = X11::XEvent.new
-      X11.XNextEvent(to_native, x_event) # blocks
+      x_event = Xlib::XEvent.new
+      Xlib.XNextEvent(to_native, x_event) # blocks
       Event.new(x_event)
     end
 
@@ -53,7 +53,7 @@ module CappX11
     end
 
     def screen_pointer(number)
-      @struct[:screens] + number*X11::Screen.size
+      @struct[:screens] + number*Xlib::Screen.size
     end
 
     def screen(number)
