@@ -5,6 +5,7 @@ module XlibObj
         @window = window
         @event_handlers = {}
         @event_mask = 0
+        @rr_event_mask = 0
       end
 
       def on(mask, event, &handler)
@@ -18,8 +19,8 @@ module XlibObj
       end
 
       def handle(event)
-        if @event_handlers[event.type]
-          @event_handlers[event.type].each do |_, handlers|
+        if @event_handlers[event.name]
+          @event_handlers[event.name].each do |_, handlers|
             handlers.each{ |handler| handler.call(event) }
           end
         end
@@ -27,34 +28,32 @@ module XlibObj
 
       private
       def add_event_mask(mask)
-        check_event_mask(mask)
         return if mask_in_use?(mask)
-        @event_mask |= XlibObj::EVENT::MASK[mask]
+        @event_mask    |= normalize_mask(mask)
+        @rr_event_mask |= normalize_rr_mask(mask)
         select_events
       end
 
       def remove_event_mask(mask)
-        check_event_mask(mask)
         return if mask_in_use?(mask)
-        @event_mask &= ~XlibObj::EVENT::MASK[mask]
+        @event_mask    &= ~normalize_mask(mask)
+        @rr_event_mask &= ~normalize_rr_mask(mask)
         select_events
       end
 
       def add_event_handler(mask, event, &handler)
         check_event(event)
-        event_id = XlibObj::EVENT::Type[event]
-        @event_handlers[event_id] ||= {}
-        @event_handlers[event_id][mask] ||= []
-        @event_handlers[event_id][mask] << handler
+        @event_handlers[event] ||= {}
+        @event_handlers[event][mask] ||= []
+        @event_handlers[event][mask] << handler
         handler
       end
 
       def remove_event_handler(mask, event, handler)
         check_event(event)
-        event_id = XlibObj::EVENT::TYPE[event]
-        @event_handlers[event_id][mask].delete(handler)
-        @event_handlers[event_id].delete(mask) if @event_handlers[event_id][mask].empty?
-        @event_handlers.delete(event_id) if @event_handlers[event_id].empty?
+        @event_handlers[event][mask].delete(handler)
+        @event_handlers[event].delete(mask) if @event_handlers[event][mask].empty?
+        @event_handlers.delete(event) if @event_handlers[event].empty?
       end
 
       def mask_in_use?(mask)
@@ -63,27 +62,20 @@ module XlibObj
         end.empty?
       end
 
-      def check_event_mask(mask)
-        raise "Unknown event #{mask}." unless XlibObj::EVENT::MASK[mask]
+      def normalize_mask(mask)
+        XlibObj::EVENT::MASK[mask] || 0
+      end
+
+      def normalize_rr_mask(mask)
+        XlibObj::EVENT::RR_MASK[mask] || 0
       end
 
       def check_event(event)
-        raise "Unknown event #{event}." unless XlibObj::EVENT::TYPE[event]
+        XlibObj::EVENT.valid_name?(event) || raise("Unknown event #{event}.")
       end
 
       def select_events
         Xlib.XSelectInput(display.to_native, window.to_native, @event_mask)
-        Xlib.XFlush(display.to_native)
-      end
-
-      def select_xrr_events
-        # A XRRScreenChangeNotifyEvent is sent to a client that has requested
-        # notification whenever the screen configuration is changed. A client
-        # can perform this request by calling XRRSelectInput, passing the
-        # display, the root window, and the RRScreenChangeNotifyMask mask.
-
-        # see also
-        # http://cgit.freedesktop.org/xorg/app/xev/tree/
         Xlib.XRRSelectInput(display.to_native, window.to_native, @xrr_event_mask)
         Xlib.XFlush(display.to_native)
       end

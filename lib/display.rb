@@ -19,6 +19,10 @@ module XlibObj
       @struct.pointer
     end
 
+    def randr?
+      !!@randr
+    end
+
     def name
       @struct[:display_name]
     end
