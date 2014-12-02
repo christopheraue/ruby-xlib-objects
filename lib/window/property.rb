@@ -105,7 +105,7 @@ module XlibObj
                     when :ATOM
                       Proc.new{ |a| Atom.new(@window.display, a) }
                     when :WINDOW
-                      Proc.new{ |w| Window.new(@window.dispay, w) }
+                      Proc.new{ |w| Window.new(@window.display, w) }
                     else
                       Proc.new{ |a| a }
                     end

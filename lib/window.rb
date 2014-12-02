@@ -13,7 +13,7 @@ module XlibObj
 
     def attribute(name)
       attributes = Xlib::WindowAttributes.new
-      Xlib.XGetWindowAttributes(display.to_native, to_native, attributes.
+      Xlib.XGetWindowAttributes(@display.to_native, @to_native, attributes.
         pointer)
       attributes[name.to_sym]
     end
@@ -34,9 +34,9 @@ module XlibObj
       x_abs = FFI::MemoryPointer.new :int
       y_abs = FFI::MemoryPointer.new :int
       child = FFI::MemoryPointer.new :Window
-      root_win = display.screen.root_window
+      root_win = @display.screen.root_window
 
-      Xlib.XTranslateCoordinates(display.to_native, window.to_native,
+      Xlib.XTranslateCoordinates(@display.to_native, @to_native,
         root_win.to_native, 0, 0, x_abs, y_abs, child)
 
       { x: x_abs.read_int, y: y_abs.read_int }
@@ -44,33 +44,33 @@ module XlibObj
 
     # Commands
     def move_resize(x, y, width, height)
-      Xlib.XMoveResizeWindow(display.to_native, to_native, x, y, width,
+      Xlib.XMoveResizeWindow(@display.to_native, @to_native, x, y, width,
         height)
-      Xlib.XFlush(display.to_native)
+      Xlib.XFlush(@display.to_native)
       self
     end
 
     def map
-      Xlib.XMapWindow(display.to_native, to_native)
-      Xlib.XFlush(display.to_native)
+      Xlib.XMapWindow(@display.to_native, @to_native)
+      Xlib.XFlush(@display.to_native)
       self
     end
 
     def unmap
-      Xlib.XUnmapWindow(display.to_native, to_native)
-      Xlib.XFlush(display.to_native)
+      Xlib.XUnmapWindow(@display.to_native, @to_native)
+      Xlib.XFlush(@display.to_native)
       self
     end
 
     def iconify
-      Xlib.XIconifyWindow(display.to_native, to_native, screen.number)
-      Xlib.XFlush(display.to_native)
+      Xlib.XIconifyWindow(@display.to_native, @to_native, screen.number)
+      Xlib.XFlush(@display.to_native)
       self
     end
 
     def raise
-      Xlib.XRaiseWindow(display.to_native, to_native)
-      Xlib.XFlush(display.to_native)
+      Xlib.XRaiseWindow(@display.to_native, @to_native)
+      Xlib.XFlush(@display.to_native)
       self
     end
 
