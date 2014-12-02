@@ -59,7 +59,7 @@ module XlibObj
         bytes = items_to_bytes(items, item_type)
 
         Xlib.XChangeProperty(
-          @window.display.to_native, @window.to_native, @atom,
+          @window.display.to_native, @window.to_native, @atom.to_native,
           item_type, item_width, Xlib::PropModeReplace, bytes, item_count
         )
       end
