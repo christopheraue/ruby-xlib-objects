@@ -24,7 +24,7 @@ module XlibObj
 
         # do and validate the request
         status = Xlib.XGetWindowProperty(
-          @window.display.to_native, @window.to_native, @atom,
+          @window.display.to_native, @window.to_native, @atom.to_native,
           data_offset, data_max_length, allow_deleted, requested_type,
           item_type, item_width, item_count, cutoff_data, pointer
         )
@@ -34,7 +34,7 @@ module XlibObj
         return if pointer.read_pointer.null? # property is not set for the window
 
         # extract response data
-        item_type = Atom.new(window.display, item_type.read_int).name
+        item_type = Atom.new(@window.display, item_type.read_int).name
         item_width = item_width.read_int
         item_count = item_count.read_int
 
