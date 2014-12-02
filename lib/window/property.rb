@@ -55,7 +55,7 @@ module XlibObj
         items = value.is_a?(Array) ? value : [value]
         item_count = items.size
         item_type = type_from_item(items.first)
-        item_width = width_from_type(type)
+        item_width = width_from_type(item_type)
         bytes = items_to_bytes(items, item_type)
 
         Xlib.XChangeProperty(
