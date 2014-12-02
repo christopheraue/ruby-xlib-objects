@@ -12,11 +12,11 @@ module XlibObj
     attr_reader :to_native
 
     def name
-      Xlib.XGetAtomName(@display.to_native, @atom).to_sym
+      Xlib.XGetAtomName(@display.to_native, @to_native).to_sym
     end
 
     def exists?
-      to_native != 0
+      @to_native != 0
     end
 
     def to_s
