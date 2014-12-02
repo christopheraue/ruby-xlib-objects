@@ -53,16 +53,18 @@ module XlibObj
 
       def set(value)
         items = value.is_a?(Array) ? value : [value]
-        item_count = items.size
         item_type = type_from_item(items.first)
         item_width = width_from_type(item_type)
         bytes = items_to_bytes(items, item_type)
+        item_count = value.is_a?(String) ? bytes.size : items.size
 
         Xlib.XChangeProperty(
           @window.display.to_native, @window.to_native, @atom.to_native,
           Atom.new(@window.display, item_type).to_native, item_width,
           Xlib::PropModeReplace, bytes, item_count
         )
+        Xlib.Xflush(@window.display.to_native)
+        self
       end
 
       private
