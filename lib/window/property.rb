@@ -60,7 +60,8 @@ module XlibObj
 
         Xlib.XChangeProperty(
           @window.display.to_native, @window.to_native, @atom.to_native,
-          item_type, item_width, Xlib::PropModeReplace, bytes, item_count
+          Atom.new(@window.display, item_type).to_native, item_width,
+          Xlib::PropModeReplace, bytes, item_count
         )
       end
 
