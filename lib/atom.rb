@@ -1,6 +1,6 @@
 module XlibObj
   class Atom
-    def intialize(display, atom)
+    def initialize(display, atom)
       @display = display
       @to_native = if atom.is_a? Integer
                      atom
