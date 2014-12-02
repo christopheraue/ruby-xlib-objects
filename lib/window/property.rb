@@ -56,7 +56,7 @@ module XlibObj
         item_type = type_from_item(items.first)
         item_width = width_from_type(item_type)
         bytes = items_to_bytes(items, item_type)
-        item_count = value.is_a?(String) ? bytes.size : items.size
+        item_count = items.first.is_a?(String) ? bytes.size : items.size
 
         Xlib.XChangeProperty(
           @window.display.to_native, @window.to_native, @atom.to_native,
