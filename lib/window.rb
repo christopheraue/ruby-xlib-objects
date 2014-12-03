@@ -87,5 +87,9 @@ module XlibObj
       @event_handler.handle(event)
       self
     end
+
+    def receive_message(type, data = nil, subject = nil)
+      Event::ClientMessage.new(type, data, subject).send_to(self)
+    end
   end
 end
