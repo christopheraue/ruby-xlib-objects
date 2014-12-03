@@ -85,7 +85,7 @@ module XlibObj
         if [:STRING, :UTF8_STRING].include? type
           bytes.split("\0")
         else
-          bytes.unpack(format(type, width) * item_count)
+          bytes.unpack(format(type) * item_count)
         end
       end
 
