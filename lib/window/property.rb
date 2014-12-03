@@ -82,14 +82,18 @@ module XlibObj
       end
 
       def bytes_to_items(bytes, type, item_count)
-        bytes.unpack(format(type) * item_count)
+        if [:STRING, :UTF8_STRING].include? type
+          bytes.split("\0")
+        else
+          bytes.unpack(format(type) * item_count)
+        end
       end
 
       def items_to_bytes(items, type)
         items.pack(format(type) * items.size)
       end
 
-      def format(type)
+      def pack_format(type)
         case type
         when :CARDINAL    then 'I!'
         when :INTEGER     then 'i!'
@@ -97,7 +101,7 @@ module XlibObj
         when :WINDOW      then 'L!'
         when :STRING      then 'Z*'
         when :UTF8_STRING then 'Z*'
-        else 'A'
+        else 'a*'
         end
       end
 

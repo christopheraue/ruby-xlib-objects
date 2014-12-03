@@ -1,6 +1,6 @@
 GIT
   remote: file:///home/c/projects/private/capp/app/Xlib
-  revision: aa82f1a8080f16224c7d5f0cae3eae3cb4fd09f4
+  revision: 3148fdc9814b8eef614239550c9469b5d5bc27d8
   branch: master
   specs:
     Xlib (0.0.1)
