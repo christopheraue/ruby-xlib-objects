@@ -81,7 +81,7 @@ module XlibObj
         { char: 8, short: 16, long: 32 }[native_width]
       end
 
-      def bytes_to_items(bytes, type, width, item_count)
+      def bytes_to_items(bytes, type, item_count)
         if [:STRING, :UTF8_STRING].include? type
           bytes.split("\0")
         else
