@@ -157,8 +157,8 @@ module XlibObj
 
       def width_from_type(type)
         case type
-        when :CARDINAL    then 16
         when :INTEGER     then 16
+        when :CARDINAL    then 32
         when :ATOM        then 32
         when :WINDOW      then 32
         when :STRING      then 8
