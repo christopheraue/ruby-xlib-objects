@@ -42,7 +42,7 @@ module XlibObj
 
         # get the property's value
         bytes = read_bytes(pointer, item_width, item_count)
-        items = bytes_to_items(bytes, item_type)
+        items = bytes_to_items(bytes, item_type, item_count)
 
         return if items.empty?
 
@@ -81,20 +81,20 @@ module XlibObj
         { char: 8, short: 16, long: 32 }[native_width]
       end
 
-      def bytes_to_items(bytes, type)
-        bytes.unpack(format(type))
+      def bytes_to_items(bytes, type, item_count)
+        bytes.unpack(format(type) * item_count)
       end
 
       def items_to_bytes(items, type)
-        items.pack(format(type))
+        items.pack(format(type) * items.size)
       end
 
       def format(type)
         case type
-        when :CARDINAL    then 'I!*'
-        when :INTEGER     then 'i!*'
-        when :ATOM        then 'L!*'
-        when :WINDOW      then 'L!*'
+        when :CARDINAL    then 'I!'
+        when :INTEGER     then 'i!'
+        when :ATOM        then 'L!'
+        when :WINDOW      then 'L!'
         when :STRING      then 'Z*'
         when :UTF8_STRING then 'Z*'
         else 'A'
