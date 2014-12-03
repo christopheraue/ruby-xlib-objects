@@ -5,7 +5,7 @@ module XlibObj
       @to_native = if atom.is_a? Integer
                      atom
                    else
-                     Xlib.XInternAtom(@display.to_native, atom.to_s, true)
+                     Xlib.XInternAtom(@display.to_native, atom.to_s, false)
                    end
     end
 
