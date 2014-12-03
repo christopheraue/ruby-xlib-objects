@@ -93,7 +93,7 @@ module XlibObj
         items.pack(format(type) * items.size)
       end
 
-      def pack_format(type)
+      def format(type)
         case type
         when :CARDINAL    then 'I!'
         when :INTEGER     then 'i!'
