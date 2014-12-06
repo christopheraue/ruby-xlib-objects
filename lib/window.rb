@@ -1,7 +1,5 @@
 module XlibObj
   class Window
-    attr_reader :display, :to_native
-
     def initialize(display, window_id)
       @display = display
       @to_native = window_id
@@ -9,6 +7,7 @@ module XlibObj
     end
 
     # Queries
+    attr_reader :display, :to_native
     alias_method :id, :to_native
 
     def attribute(name)
@@ -16,10 +15,16 @@ module XlibObj
       Xlib.XGetWindowAttributes(@display.to_native, @to_native, attributes.
         pointer)
       attributes[name.to_sym]
+    rescue
+      nil
     end
 
     def method_missing(name)
       attribute(name)
+    end
+
+    def screen
+      Screen.new(@display, attribute(:screen))
     end
 
     def property(name)
@@ -34,7 +39,7 @@ module XlibObj
       x_abs = FFI::MemoryPointer.new :int
       y_abs = FFI::MemoryPointer.new :int
       child = FFI::MemoryPointer.new :Window
-      root_win = @display.screen.root_window
+      root_win = screen.root_window
 
       Xlib.XTranslateCoordinates(@display.to_native, @to_native,
         root_win.to_native, 0, 0, x_abs, y_abs, child)
@@ -88,7 +93,7 @@ module XlibObj
       self
     end
 
-    def receive_message(type, data = nil, subject = nil)
+    def send_to_itself(type, data = nil, subject = nil)
       Event::ClientMessage.new(type, data, subject).send_to(self)
     end
   end

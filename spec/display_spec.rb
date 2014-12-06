@@ -11,7 +11,6 @@ describe XlibObj::Display do
   before { allow(display_struct).to receive(:[]).with(:display_name).
     and_return(:display_name) }
 
-
   describe 'The class' do
     describe '.names: Getting the names of all available displays' do
       subject { klass.names }
