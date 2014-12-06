@@ -5,7 +5,7 @@ module XlibObj
     def initialize(display, window_id)
       @display = display
       @to_native = window_id
-      @event_handler = EventHandler.new(self)
+      @event_handler = EventHandler.singleton(display, window_id)
     end
 
     # Queries

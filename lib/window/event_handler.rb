@@ -1,8 +1,17 @@
 module XlibObj
   class Window
     class EventHandler
-      def initialize(window)
-        @window = window
+      class << self
+        def singleton(display, window_id)
+          @handlers ||= {}
+          @handlers[display] ||= {}
+          @handlers[display][window_id] ||= new(display, window_id)
+        end
+      end
+
+      def initialize(display, window_id)
+        @display = display
+        @window_id = window_id
         @event_handlers = {}
         @event_mask = 0
         @rr_event_mask = 0
@@ -75,17 +84,9 @@ module XlibObj
       end
 
       def select_events
-        Xlib.XSelectInput(display.to_native, window.to_native, @event_mask)
-        Xlib.XRRSelectInput(display.to_native, window.to_native, @xrr_event_mask)
-        Xlib.XFlush(display.to_native)
-      end
-
-      def display
-        @window.display
-      end
-
-      def window
-        @window
+        Xlib.XSelectInput(@display.to_native, @window_id, @event_mask)
+        Xlib.XRRSelectInput(@display.to_native, @window_id, @xrr_event_mask)
+        Xlib.XFlush(@display.to_native)
       end
     end
   end

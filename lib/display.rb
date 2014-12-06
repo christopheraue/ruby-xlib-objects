@@ -19,20 +19,16 @@ module XlibObj
       @struct.pointer
     end
 
-    def randr?
-      !!@randr
-    end
-
     def name
       @struct[:display_name]
     end
 
-    def screens
-      (0..@struct[:nscreens]-1).map{ |number| screen(number) }
-    end
-
     def socket
       UNIXSocket.for_fd(Xlib.XConnectionNumber(to_native))
+    end
+
+    def screens
+      (0..@struct[:nscreens]-1).map{ |number| screen(number) }
     end
 
     def handle_events
@@ -53,7 +49,7 @@ module XlibObj
     def handle_event(event)
       handling_window_id = event.event || event.parent || event.window
       handling_window = Window.new(self, handling_window_id)
-      handling_window.handle(event) if handling_window
+      handling_window.handle(event)
     end
 
     def screen_pointer(number)
