@@ -72,20 +72,20 @@ module XlibObj
       end
 
       def normalize_mask(mask)
-        XlibObj::EVENT::MASK[mask] || 0
+        XlibObj::Event::MASK[mask] || 0
       end
 
       def normalize_rr_mask(mask)
-        XlibObj::EVENT::RR_MASK[mask] || 0
+        XlibObj::Event::RR_MASK[mask] || 0
       end
 
       def check_event(event)
-        XlibObj::EVENT.valid_name?(event) || raise("Unknown event #{event}.")
+        XlibObj::Event.valid_name?(event) || raise("Unknown event #{event}.")
       end
 
       def select_events
         Xlib.XSelectInput(@display.to_native, @window_id, @event_mask)
-        Xlib.XRRSelectInput(@display.to_native, @window_id, @xrr_event_mask)
+        Xlib.XRRSelectInput(@display.to_native, @window_id, @rr_event_mask)
         Xlib.XFlush(@display.to_native)
       end
     end

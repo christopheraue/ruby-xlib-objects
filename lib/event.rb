@@ -11,13 +11,13 @@ module XlibObj
       @name ||= x_name || xrr_name
     end
 
+    def method_missing(name)
+      nil
+    end
+
     private
     def type
       @event[:type]
-    end
-
-    def event_base
-      @event_base ||= self.class.event_base(@event[:xany][:display])
     end
 
     def struct
@@ -33,7 +33,7 @@ module XlibObj
     end
 
     def xrr_type
-      type-event_base
+      type-self.class.xrr_type_offset(@event[:xany][:display])
     end
 
     def xrr_struct
@@ -46,7 +46,7 @@ module XlibObj
     end
 
     def xrr_subtype_struct
-      if xrr_type_struct && xrr_type_struct[:subtype]
+      if xrr_type == Xlib::RRNotify
         struct = self.class::RR_SUBTYPE_TO_STRUCT[xrr_type_struct[:subtype]]
         struct.new(@event.pointer) if struct
       end
@@ -65,7 +65,7 @@ module XlibObj
     end
 
     def xrr_subtype_name
-      if xrr_type_struct[:subtype]
+      if xrr_type == Xlib::RRNotify
         self.class::RR_SUBTYPE.key(xrr_type_struct[:subtype])
       end
     end
@@ -73,9 +73,9 @@ module XlibObj
 
   class Event
     class << self
-      def event_base(display)
-        @event_base ||= {}
-        @event_base[display] ||= (
+      def xrr_type_offset(display)
+        @xrr_type_offset ||= {}
+        @xrr_type_offset[display] ||= (
           rr_event_base = FFI::MemoryPointer.new :int
           rr_error_base = FFI::MemoryPointer.new :int
           Xlib::XRRQueryExtension(display, rr_event_base, rr_error_base)
