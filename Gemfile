@@ -4,5 +4,6 @@ gem 'Xlib', git: 'file:///home/c/projects/private/capp/app/Xlib', branch: 'maste
 
 group :test do
   gem 'rspec'
+  gem 'rspec-its'
   gem 'factory_girl'
 end

@@ -2,13 +2,13 @@ module XlibObj
   class Event
     def initialize(event)
       @event = event
-      struct && struct.members.each do |key|
+      struct && (struct.members-[:type]).each do |key|
         define_singleton_method(key) { struct[key] }
       end
     end
 
     def name
-      @name ||= x_name || xrr_name
+      @name ||= (x_name || xrr_name)
     end
 
     def method_missing(name)
@@ -61,7 +61,7 @@ module XlibObj
     end
 
     def xrr_type_name
-      @xrr_type_name ||= self.class::RR_TYPE.key(xrr_type)
+      self.class::RR_TYPE.key(xrr_type)
     end
 
     def xrr_subtype_name
@@ -76,10 +76,10 @@ module XlibObj
       def xrr_type_offset(display)
         @xrr_type_offset ||= {}
         @xrr_type_offset[display] ||= (
-          rr_event_base = FFI::MemoryPointer.new :int
-          rr_error_base = FFI::MemoryPointer.new :int
-          Xlib::XRRQueryExtension(display, rr_event_base, rr_error_base)
-          rr_event_base.read_int
+          rr_event_offset = FFI::MemoryPointer.new :int
+          rr_error_offset = FFI::MemoryPointer.new :int
+          Xlib.XRRQueryExtension(display, rr_event_offset, rr_error_offset)
+          rr_event_offset.read_int
         )
       end
 
