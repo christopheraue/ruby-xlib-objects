@@ -10,10 +10,10 @@ module XlibObj
       def get
         return unless @atom.exists?
 
-        data_offset = 0           # data offset
-        data_max_length = 2**16   # max data length, multiple of 32 bit
-        allow_deleted = false     # don't retrieve deleted properties
-        requested_type = Xlib::AnyPropertyType
+        data_offset     = 0
+        data_max_length = 2**16  # multiple of 32 bit
+        allow_deleted   = false  # don't retrieve deleted properties
+        requested_type  = Xlib::AnyPropertyType
 
         # response data
         pointer     = FFI::MemoryPointer.new :pointer
@@ -29,7 +29,7 @@ module XlibObj
           item_type, item_width, item_count, cutoff_data, pointer
         )
 
-        raise 'Getting property value failed.' unless status == 0
+        return unless status == 0
 
         return if pointer.read_pointer.null? # property is not set for the window
 
@@ -51,18 +51,18 @@ module XlibObj
         items.length == 1 ? items.first : items
       end
 
-      def set(value)
-        items = value.is_a?(Array) ? value : [value]
-        item_type = type_from_item(items.first)
+      def set(value, type = nil)
+        objects = value.is_a?(Array) ? value : [value]
+        item_type = type || type_from_objects(objects)
+        items = objects_to_items(objects, item_type)
         item_width = width_from_type(item_type)
         bytes = items_to_bytes(items, item_type)
-        item_count = items.first.is_a?(String) ? bytes.size : items.size
+        item_count = item_type[-6..-1] == 'STRING' ? bytes.size : items.size
 
         Xlib.XChangeProperty(
           @window.display.to_native, @window.to_native, @atom.to_native,
           Atom.new(@window.display, item_type).to_native, item_width,
-          Xlib::PropModeReplace, bytes, item_count
-        )
+          Xlib::PropModeReplace, bytes, item_count)
         Xlib.XFlush(@window.display.to_native)
         self
       end
@@ -101,7 +101,7 @@ module XlibObj
         when :WINDOW      then 'L!'
         when :STRING      then 'Z*'
         when :UTF8_STRING then 'Z*'
-        else 'a*'
+        else 'a'
         end
       end
 
@@ -122,8 +122,6 @@ module XlibObj
 
       def objects_to_items(objects, type)
         transform = case type
-                    when :UTF8_STRING
-                      Proc.new{ |s| s.force_encoding('ASCII-8BIT') }
                     when :ATOM
                       Proc.new{ |a| a.to_native }
                     when :WINDOW
@@ -135,23 +133,25 @@ module XlibObj
         objects.map(&transform)
       end
 
-      def type_from_item(item)
-        if item.is_a? Window
+      def type_from_objects(objects)
+        if objects.all? { |o| o.is_a? Window }
           :WINDOW
-        elsif item.is_a? Atom
+        elsif objects.all? { |o| o.is_a? Atom }
           :ATOM
-        elsif item.is_a? Integer
-          if item >= 0
-            :CARDINAL
-          else
+        elsif objects.all? { |o| o.is_a? Integer }
+          if objects.any? { |o| o <= 0 }
             :INTEGER
+          else
+            :CARDINAL
           end
-        elsif item.is_a? String
-          if item.encoding == Encoding::UTF_8
+        elsif objects.all? { |o| o.is_a? String }
+          if objects.any? { |o| o.encoding == Encoding::UTF_8 }
             :UTF8_STRING
           else
             :STRING
           end
+        else
+          :BYTES
         end
       end
 
