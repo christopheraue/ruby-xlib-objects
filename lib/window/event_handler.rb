@@ -37,6 +37,7 @@ module XlibObj
 
       private
       def add_event_mask(mask)
+        check_mask(mask)
         return if mask_in_use?(mask)
         @event_mask    |= normalize_mask(mask)
         @rr_event_mask |= normalize_rr_mask(mask)
@@ -44,7 +45,9 @@ module XlibObj
       end
 
       def remove_event_mask(mask)
+        check_mask(mask)
         return if mask_in_use?(mask)
+        return unless mask_selected?(mask)
         @event_mask    &= ~normalize_mask(mask)
         @rr_event_mask &= ~normalize_rr_mask(mask)
         select_events
@@ -60,15 +63,26 @@ module XlibObj
 
       def remove_event_handler(mask, event, handler)
         check_event(event)
+        return unless mask_in_use?(mask)
+        return unless @event_handlers[event]
         @event_handlers[event][mask].delete(handler)
         @event_handlers[event].delete(mask) if @event_handlers[event][mask].empty?
         @event_handlers.delete(event) if @event_handlers[event].empty?
       end
 
       def mask_in_use?(mask)
-        not @event_handlers.select do |_, handlers|
-          handlers.has_key?(mask)
-        end.empty?
+        @event_handlers.select{ |_, handlers| handlers.has_key?(mask) }.any?
+      end
+
+      def mask_selected?(mask)
+        (@event_mask & ~normalize_mask(mask) != @event_mask) or
+          (@rr_event_mask & ~normalize_rr_mask(mask) != @rr_event_mask)
+      end
+
+      def check_mask(mask)
+        if normalize_mask(mask).zero? && normalize_rr_mask(mask).zero?
+          raise("Unknown event mask #{mask}.")
+        end
       end
 
       def normalize_mask(mask)
