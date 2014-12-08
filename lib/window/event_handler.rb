@@ -32,6 +32,9 @@ module XlibObj
           @event_handlers[event.name].each do |_, handlers|
             handlers.each{ |handler| handler.call(event) }
           end
+          true
+        else
+          false
         end
       end
 
