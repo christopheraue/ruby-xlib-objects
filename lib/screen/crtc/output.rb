@@ -1,6 +1,6 @@
 module XlibObj
   class Screen
-    class Crtcs
+    class Crtc
       class Output
         def initialize(crtc, id)
           @crtc = crtc
@@ -20,9 +20,9 @@ module XlibObj
         private
         def attributes
           unless @attributes
-            screen_resources_ptr = Xlib.XRRGetScreenResources(@screen.
-              display.to_native, @screen.root_window.to_native)
-            output_info_ptr = Xlib.XRRGetOutputInfo(@screen.display.
+            screen_resources_ptr = Xlib.XRRGetScreenResources(@crtc.screen.
+              display.to_native, @crtc.screen.root_window.to_native)
+            output_info_ptr = Xlib.XRRGetOutputInfo(@crtc.screen.display.
               to_native, screen_resources_ptr, @id)
             @attributes = Xlib::XRROutputInfo.new(output_info_ptr)
             Xlib.XRRFreeScreenResources(screen_resources_ptr)
