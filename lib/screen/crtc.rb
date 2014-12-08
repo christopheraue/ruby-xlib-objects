@@ -17,10 +17,10 @@ module XlibObj
       end
 
       def outputs
-        (0..attributes[:noutput]-1).map do |output_number|
-          output_id(resources[:outputs], output_number)
+        (0..attribute(:noutput)-1).map do |output_number|
+          output_id(attribute(:outputs), output_number)
         end.map do |output_id|
-          Output.new(crtc, output_id)
+          Output.new(self, output_id)
         end
       end
 
