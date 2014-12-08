@@ -10,6 +10,7 @@ module XlibObj
       attr_writer :subject, :data, :type
 
       def send_to(receiver)
+        raise "The client message needs a type at least." unless @type
         @receiver = receiver
         Xlib.XSendEvent(@receiver.display.to_native, @receiver.to_native, false,
           Xlib::SubstructureNotifyMask | Xlib::SubstructureRedirectMask,
