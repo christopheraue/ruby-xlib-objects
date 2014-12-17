@@ -40,7 +40,8 @@ module XlibObj
       unless @resources
         resources_ptr = Xlib.XRRGetScreenResources(@display.to_native,
           root_window.to_native)
-        @resources = Xlib::XRRScreenResources.new(resources_ptr)
+        resources = Xlib::XRRScreenResources.new(resources_ptr)
+        @resources = resources.layout.members.map{ |m| [m, resources[m]] }.to_h
         Xlib.XRRFreeScreenResources(resources_ptr)
       end
 
