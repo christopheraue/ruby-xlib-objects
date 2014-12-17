@@ -46,9 +46,7 @@ module XlibObj
 
         return if items.empty?
 
-        items = items_to_objects(items, item_type)
-
-        items.length == 1 ? items.first : items
+        items_to_objects(items, item_type)
       end
 
       def set(value, type = nil)

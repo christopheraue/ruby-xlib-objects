@@ -83,15 +83,6 @@ describe XlibObj::Window::Property do
         it { is_expected.to eq items }
       end
 
-      context "when there is only one extracted item (valid for property data
-        of all types)" do
-        let(:items) { %w(b) }
-        let(:item_type) { :BYTES }
-        let(:bytes) { items.pack('a') }
-
-        it { is_expected.to eq 'b' }
-      end
-
       context "when the property contains integers" do
         let(:items) { [1,2,3] }
         let(:item_type) { :INTEGER }
