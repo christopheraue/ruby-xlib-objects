@@ -16,9 +16,21 @@ describe XlibObj::Screen do
 
     describe "#attribute: Getting one of its attributes from its struct" do
       subject { instance.attribute(:attribute_key) }
+
       before { allow(screen_struct).to receive(:[]).with(:attribute_key).
         and_return(:attribute_value) }
-      it { is_expected.to be :attribute_value }
+
+      context "when the attribute is not a member of the struct" do
+        before { allow(screen_struct).to receive_message_chain(:layout, :members,
+          :include?).with(:attribute_key).and_return(false) }
+        it { is_expected.to be nil }
+      end
+
+      context "when the attribute is a member of the struct" do
+        before { allow(screen_struct).to receive_message_chain(:layout, :members,
+          :include?).with(:attribute_key).and_return(true) }
+        it { is_expected.to be :attribute_value }
+      end
     end
 
     describe "#method_missing: Getting an attribute" do

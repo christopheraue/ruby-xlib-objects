@@ -4,11 +4,16 @@ module XlibObj
       def initialize(screen, id)
         @screen = screen
         @id = id
+
+        ObjectSpace.define_finalizer(self) do
+          Xlib.XRRFreeCrtcInfo(@attributes.pointer) if @attributes
+        end
       end
 
       attr_reader :screen, :id
 
       def attribute(attribute)
+        return unless attributes.layout.members.include? attribute.to_sym
         attributes[attribute.to_sym]
       end
 
@@ -31,12 +36,8 @@ module XlibObj
             display.to_native, @screen.root_window.to_native)
           crtc_info_ptr = Xlib.XRRGetCrtcInfo(@screen.display.to_native,
             screen_resources_ptr, @id)
-          attributes = Xlib::XRRCrtcInfo.new(crtc_info_ptr)
-          @attributes = attributes.layout.members.map do |m|
-            [m, attributes[m]]
-          end.to_h
-          #Xlib.XRRFreeScreenResources(screen_resources_ptr)
-          #Xlib.XRRFreeCrtcInfo(crtc_info_ptr)
+          @attributes = Xlib::XRRCrtcInfo.new(crtc_info_ptr)
+          Xlib.XRRFreeScreenResources(screen_resources_ptr)
         end
 
         @attributes

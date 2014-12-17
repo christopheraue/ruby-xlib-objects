@@ -20,14 +20,25 @@ describe XlibObj::Screen::Crtc do
   describe "#attribute: Getting one of its attributes" do
     subject { instance.attribute(:attribute_key) }
 
+    let(:attributes) { { attribute_key: :attribute_value } }
+
     before { allow(Xlib).to receive(:XRRGetScreenResources) }
     before { allow(Xlib).to receive(:XRRGetCrtcInfo) }
-    before { allow(Xlib::XRRCrtcInfo).to receive(:new).and_return(
-      attribute_key: :attribute_value) }
+    before { allow(Xlib::XRRCrtcInfo).to receive(:new).and_return(attributes) }
     before { allow(Xlib).to receive(:XRRFreeScreenResources) }
-    before { allow(Xlib).to receive(:XRRFreeCrtcInfo) }
 
-    it { is_expected.to be :attribute_value }
+    context "when the attribute is not a member of the struct" do
+      before { allow(attributes).to receive_message_chain(:layout, :members,
+        :include?).with(:attribute_key).and_return(false) }
+      it { is_expected.to be nil }
+    end
+
+    context "when the attribute is a member of the struct" do
+      before { allow(attributes).to receive_message_chain(:layout, :members,
+        :include?).with(:attribute_key).and_return(true) }
+      it { is_expected.to be :attribute_value }
+      it { is_expected.to send_message(:XRRFreeScreenResources).to(Xlib) }
+    end
   end
 
   describe "#method_missing: Getting an attribute" do

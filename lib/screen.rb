@@ -3,6 +3,10 @@ module XlibObj
     def initialize(display, screen_pointer)
       @display = display
       @struct = Xlib::Screen.new(screen_pointer)
+
+      ObjectSpace.define_finalizer(self) do
+        Xlib.XRRFreeScreenResources(@resources.pointer) if @resources
+      end
     end
 
     attr_reader :display
@@ -12,6 +16,7 @@ module XlibObj
     end
 
     def attribute(name)
+      return unless @struct.layout.members.include? name.to_sym
       @struct[name]
     end
 
@@ -40,9 +45,7 @@ module XlibObj
       unless @resources
         resources_ptr = Xlib.XRRGetScreenResources(@display.to_native,
           root_window.to_native)
-        resources = Xlib::XRRScreenResources.new(resources_ptr)
-        @resources = resources.layout.members.map{ |m| [m, resources[m]] }.to_h
-        #Xlib.XRRFreeScreenResources(resources_ptr)
+        @resources = Xlib::XRRScreenResources.new(resources_ptr)
       end
 
       @resources
