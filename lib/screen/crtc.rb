@@ -35,8 +35,8 @@ module XlibObj
           @attributes = attributes.layout.members.map do |m|
             [m, attributes[m]]
           end.to_h
-          Xlib.XRRFreeScreenResources(screen_resources_ptr)
-          Xlib.XRRFreeCrtcInfo(crtc_info_ptr)
+          #Xlib.XRRFreeScreenResources(screen_resources_ptr)
+          #Xlib.XRRFreeCrtcInfo(crtc_info_ptr)
         end
 
         @attributes

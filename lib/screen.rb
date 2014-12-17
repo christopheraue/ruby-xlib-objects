@@ -42,7 +42,7 @@ module XlibObj
           root_window.to_native)
         resources = Xlib::XRRScreenResources.new(resources_ptr)
         @resources = resources.layout.members.map{ |m| [m, resources[m]] }.to_h
-        Xlib.XRRFreeScreenResources(resources_ptr)
+        #Xlib.XRRFreeScreenResources(resources_ptr)
       end
 
       @resources
