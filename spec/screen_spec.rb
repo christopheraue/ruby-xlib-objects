@@ -58,7 +58,7 @@ describe XlibObj::Screen do
 
       before { allow(instance).to receive(:resources).
         and_return(screen_resources) }
-      before { allow(screen_resources).to receive(:[]).with(:ncrtcs).
+      before { allow(screen_resources).to receive(:[]).with(:ncrtc).
         and_return(2) }
       before { allow(screen_resources).to receive(:[]).with(:crtcs).
         and_return(1000000) } #crtc ids pointer address

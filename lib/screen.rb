@@ -28,7 +28,7 @@ module XlibObj
     end
 
     def crtcs
-      (0..resources[:ncrtcs]-1).map do |crtc_number|
+      (0..resources[:ncrtc]-1).map do |crtc_number|
         crtc_id(resources[:crtcs], crtc_number)
       end.map do |crtc_id|
         Crtc.new(self, crtc_id)
