@@ -5,6 +5,13 @@ Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 
 I18n.enforce_available_locales = false
 
+RSpec.configure do |config|
+  config.before(:suite) do
+    # stub Xlib methods
+    def Xlib.method_missing; nil end
+  end
+end
+
 def verify_partial_doubles_on
   RSpec.configure do |config|
     config.mock_with :rspec do |mocks|

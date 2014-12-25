@@ -1,9 +1,9 @@
 GIT
-  remote: file:///home/c/projects/private/capp/app/Xlib
-  revision: f34dd6bb9b21c005ae667568ed4db48b17f986dc
+  remote: git://github.com/christopheraue/xlib.git
+  revision: 0fac8e1539b93fd9413d7b201ea4c542dd070d79
   branch: master
   specs:
-    Xlib (0.0.1)
+    xlib (0.0.1)
       ffi
 
 GEM
@@ -45,7 +45,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  Xlib!
   factory_girl
   rspec
   rspec-its
+  xlib!
