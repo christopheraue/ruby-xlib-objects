@@ -1,5 +1,4 @@
-require 'bundler/setup'
-Bundler.require(:default)
+require 'xlib'
 
 module XlibObj; end
 

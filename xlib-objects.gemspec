@@ -1,12 +1,20 @@
 Gem::Specification.new do |s|
-  s.name         = 'xlib-objects'
-  s.version      = '0.0.1'
-  s.author       = 'Christopher Aue'
-  s.email        = 'mail@christopheraue.net'
-  s.platform     = Gem::Platform::RUBY
-  s.summary      = 'Light object wrapper around Xlib'
-  s.files        = Dir.glob('lib/**/*.rb')
-  s.require_path = 'lib'
+  s.name          = 'xlib-objects'
+  s.version       = '0.1.0'
+  s.license       = 'MIT'
 
-  s.add_dependency 'xlib'
+  s.summary       = 'A light object wrapper around xlib'
+  s.description   = 'Ruby bindings for X11'
+
+  s.authors       = ['Christopher Aue']
+  s.email         = 'mail@christopheraue.net'
+  s.homepage      = 'https://github.com/christopheraue/ruby-xlib-objects'
+
+  s.files         = Dir.glob('lib/**/*.rb')
+  s.require_paths = ['lib']
+
+  s.add_runtime_dependency 'xlib', '~> 1.0'
+
+  s.add_development_dependency 'rspec', '~> 3.1'
+  s.add_development_dependency 'rspec-its', '~> 1.1'
 end

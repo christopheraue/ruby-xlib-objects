@@ -1,3 +1,5 @@
+require 'socket'
+
 module XlibObj
   class Display
     class << self

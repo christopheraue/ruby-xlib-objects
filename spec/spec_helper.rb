@@ -1,9 +1,8 @@
 require_relative '../lib/xlib-objects'
-Bundler.require(:test)
+require 'rspec'
+require 'rspec/its'
 
 Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
-
-I18n.enforce_available_locales = false
 
 RSpec.configure do |config|
   config.before(:suite) do
