@@ -1,4 +1,4 @@
-require_relative '../lib/Xlib-objects'
+require_relative '../lib/xlib-objects'
 Bundler.require(:test)
 
 Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
