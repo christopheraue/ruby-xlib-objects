@@ -1,6 +1,7 @@
 require_relative '../lib/xlib-objects'
 require 'rspec'
 require 'rspec/its'
+require 'rspec/mocks/matchers/send_message'
 
 Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 

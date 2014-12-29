@@ -17,4 +17,5 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'rspec', '~> 3.1'
   s.add_development_dependency 'rspec-its', '~> 1.1'
+  s.add_development_dependency 'rspec-mocks-matchers-send_message', '~> 0.1'
 end
