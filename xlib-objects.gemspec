@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name          = 'xlib-objects'
-  s.version       = '0.1.0'
+  s.version       = '0.2.0'
   s.license       = 'MIT'
 
   s.summary       = 'A light object wrapper around xlib'
@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.files         = Dir.glob('lib/**/*.rb')
   s.require_paths = ['lib']
 
-  s.add_runtime_dependency 'xlib', '~> 1.0'
+  s.add_runtime_dependency 'xlib', '~> 1.1'
 
   s.add_development_dependency 'rspec', '~> 3.1'
   s.add_development_dependency 'rspec-its', '~> 1.1'

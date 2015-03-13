@@ -45,7 +45,35 @@ module XlibObj
       handle_event(next_event) while pending_events > 0
     end
 
+    def on_error(&callback)
+      @error_handler = if callback
+        FFI::Function.new(:pointer, [:pointer, :pointer]) do |display_ptr, error_ptr|
+          next if display_ptr != to_native
+          x_error = Xlib::XErrorEvent.new(error_ptr)
+          callback.call Error.new(self, x_error)
+        end
+      else
+        nil
+      end
+
+      Xlib.XSetErrorHandler(@error_handler)
+    end
+
+    def on_io_error(&callback)
+      @io_error_handler = if callback
+        FFI::Function.new(:pointer, [:pointer]) do |display_ptr|
+          next if display_ptr != to_native
+          callback.call
+        end
+      else
+        nil
+      end
+
+      Xlib.XSetIOErrorHandler(@io_error_handler)
+    end
+
     private
+
     def pending_events
       Xlib.XPending(to_native)
     end

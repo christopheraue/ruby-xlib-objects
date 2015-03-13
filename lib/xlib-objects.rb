@@ -13,6 +13,7 @@ module XlibObj; end
 require_relative 'atom'
 require_relative 'display'
 require_relative 'event'
+require_relative 'error'
 require_relative 'event/client_message'
 require_relative 'screen'
 require_relative 'screen/crtc'

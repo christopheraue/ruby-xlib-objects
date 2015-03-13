@@ -8,7 +8,7 @@ Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 RSpec.configure do |config|
   config.before(:suite) do
     # stub Xlib methods
-    def Xlib.method_missing; nil end
+    def Xlib.method_missing(*args); nil end
   end
 end
 

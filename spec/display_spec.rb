@@ -111,5 +111,13 @@ describe XlibObj::Display do
         end
       end
     end
+
+    describe "#on_error" do
+      it "needs to be spec'd"
+    end
+
+    describe "#on_io_error" do
+      it "needs to be spec'd"
+    end
   end
 end
