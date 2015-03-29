@@ -72,7 +72,7 @@ module XlibObj
       if [Xlib::BadWindow, Xlib::BadPixmap, Xlib::BadCursor, Xlib::BadFont, Xlib::BadDrawable,
         Xlib::BadColor, Xlib::BadGC, Xlib::BadIDChoice].include?(code)
         Xlib.XGetErrorDatabaseText(@display.to_native, @display.name, "ResourceID",
-          "ResourceID 0x%x", message, message_size)
+          "ResourceID %x", message, message_size)
       elsif code == Xlib::BadValue
         Xlib.XGetErrorDatabaseText(@display.to_native, @display.name, "Value", "Value 0x%x",
           message, message_size)
