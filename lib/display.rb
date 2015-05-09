@@ -41,6 +41,10 @@ module XlibObj
       (0..@struct[:nscreens]-1).map{ |number| screen(number) }
     end
 
+    def focused_window
+      screens.reduce(nil){ |focused_window, s| focused_window or s.focused_window }
+    end
+
     def handle_events
       handle_event(next_event) while pending_events > 0
     end

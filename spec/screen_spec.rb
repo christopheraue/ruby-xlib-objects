@@ -2,7 +2,7 @@ describe XlibObj::Screen do
   subject(:klass) { described_class.clone }
   subject(:instance) { klass.new(display, :screen_ptr) }
 
-  let(:display) { instance_double(Xlib::Display) }
+  let(:display) { instance_double(XlibObj::Display, to_native: :display_ptr) }
   let(:screen_struct) { instance_double(Xlib::Screen, pointer: :screen_ptr) }
 
   before { allow(Xlib::Screen).to receive(:new).with(:screen_ptr).
@@ -59,6 +59,35 @@ describe XlibObj::Screen do
       before { allow(XlibObj::Window).to receive(:new).with(display, :win_id).
         and_return(:root_window) }
       it { is_expected.to be :root_window}
+    end
+
+    describe "#focused_window: Gets the window on it that is focused" do
+      subject { instance.focused_window }
+
+      before { allow(FFI::MemoryPointer).to receive(:new).and_return(instance_double(FFI::MemoryPointer))}
+
+      context "when there is no focused window" do
+        before { allow(Xlib).to receive(:XGetInputFocus) do |display_ptr, window_ptr|
+          allow(window_ptr).to receive(:read_int).and_return(Xlib::None)
+        end }
+        it { is_expected.to be nil }
+      end
+
+      context "when the focused window is the one under the pointer" do
+        before { allow(Xlib).to receive(:XGetInputFocus) do |display_ptr, window_ptr|
+          allow(window_ptr).to receive(:read_int).and_return(Xlib::PointerRoot)
+        end }
+        before { allow(instance).to receive(:root_window).and_return(:root_window) }
+        it { is_expected.to be :root_window }
+      end
+
+      context "when the focused window is the one under the pointer" do
+        before { allow(Xlib).to receive(:XGetInputFocus) do |display_ptr, window_ptr|
+          allow(window_ptr).to receive(:read_int).and_return(1234)
+        end }
+        before { allow(XlibObj::Window).to receive(:new).with(display, 1234).and_return(:window) }
+        it { is_expected.to be :window }
+      end
     end
 
     describe "#crtcs: Getting its CRT controllers" do

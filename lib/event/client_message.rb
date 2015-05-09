@@ -21,12 +21,12 @@ module XlibObj
         raise "The client message needs a type at least." unless @type
         @receiver = receiver
         Xlib.XSendEvent(@receiver.display.to_native, @receiver.to_native, false,
-          Xlib::SubstructureNotifyMask | Xlib::SubstructureRedirectMask,
-          to_native)
+          Xlib::SubstructureNotifyMask | Xlib::SubstructureRedirectMask, to_native)
         Xlib.XFlush(@receiver.display.to_native)
       end
 
       private
+
       def to_native
         event = Xlib::XEvent.new
         event[:xclient][:type]         = Xlib::ClientMessage

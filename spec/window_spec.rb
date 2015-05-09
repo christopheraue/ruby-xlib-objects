@@ -160,7 +160,19 @@ describe XlibObj::Window do
       before { allow(Xlib).to receive(:XFlush) }
 
       it { is_expected.to send_message(:XRaiseWindow).to(Xlib).with(
-        :display_ptr, :win_id) }
+          :display_ptr, :win_id) }
+      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to be(instance) }
+    end
+
+    describe "#focus: Focuses the window" do
+      subject { instance.focus }
+
+      before { allow(Xlib).to receive(:XSetInputFocus) }
+      before { allow(Xlib).to receive(:XFlush) }
+
+      it { is_expected.to send_message(:XSetInputFocus).to(Xlib).with(:display_ptr, :win_id,
+          Xlib::RevertToParent, Xlib::CurrentTime) }
       it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
       it { is_expected.to be(instance) }
     end

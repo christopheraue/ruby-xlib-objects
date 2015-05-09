@@ -57,6 +57,10 @@ describe XlibObj::Display do
       it { is_expected.to eq [:screen1, :screen2] }
     end
 
+    describe "#focused_window: Gets its focused window across all screens" do
+      it "needs to be spec'd"
+    end
+
     describe '#handle_events: Handles all events waiting in the queue' do
       subject { instance.handle_events }
 

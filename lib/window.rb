@@ -20,8 +20,7 @@ module XlibObj
 
     def attribute(name)
       attributes = Xlib::WindowAttributes.new
-      Xlib.XGetWindowAttributes(@display.to_native, @to_native, attributes.
-        pointer)
+      Xlib.XGetWindowAttributes(@display.to_native, @to_native, attributes.pointer)
       attributes[name.to_sym]
     rescue
       nil
@@ -49,16 +48,15 @@ module XlibObj
       child = FFI::MemoryPointer.new :Window
       root_win = screen.root_window
 
-      Xlib.XTranslateCoordinates(@display.to_native, @to_native,
-        root_win.to_native, 0, 0, x_abs, y_abs, child)
+      Xlib.XTranslateCoordinates(@display.to_native, @to_native, root_win.to_native, 0, 0, x_abs,
+        y_abs, child)
 
       { x: x_abs.read_int, y: y_abs.read_int }
     end
 
     # Commands
     def move_resize(x, y, width, height)
-      Xlib.XMoveResizeWindow(@display.to_native, @to_native, x, y, width,
-        height)
+      Xlib.XMoveResizeWindow(@display.to_native, @to_native, x, y, width, height)
       Xlib.XFlush(@display.to_native)
       self
     end
@@ -83,6 +81,12 @@ module XlibObj
 
     def raise
       Xlib.XRaiseWindow(@display.to_native, @to_native)
+      Xlib.XFlush(@display.to_native)
+      self
+    end
+
+    def focus
+      Xlib.XSetInputFocus(@display.to_native, @to_native, Xlib::RevertToParent, Xlib::CurrentTime)
       Xlib.XFlush(@display.to_native)
       self
     end

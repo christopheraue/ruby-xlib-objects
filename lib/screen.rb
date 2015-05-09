@@ -40,6 +40,21 @@ module XlibObj
       @root_window ||= Window.new(@display, Xlib.XRootWindowOfScreen(to_native))
     end
 
+    def focused_window
+      window_ptr = FFI::MemoryPointer.new :Window
+      trash_ptr  = FFI::MemoryPointer.new :int
+      Xlib.XGetInputFocus(@display.to_native, window_ptr, trash_ptr)
+      window = window_ptr.read_int
+
+      if window == Xlib::PointerRoot
+        root_window
+      elsif window == Xlib::None
+        nil
+      else
+        Window.new(@display, window)
+      end
+    end
+
     def crtcs
       (0..resources[:ncrtc]-1).map do |crtc_number|
         crtc_id(resources[:crtcs], crtc_number)
@@ -49,6 +64,7 @@ module XlibObj
     end
 
     private
+
     def resources
       unless @resources
         resources_ptr = Xlib.XRRGetScreenResources(@display.to_native,
