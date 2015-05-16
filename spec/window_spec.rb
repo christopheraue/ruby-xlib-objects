@@ -188,7 +188,7 @@ describe XlibObj::Window do
       it { is_expected.to be(instance) }
     end
 
-    describe "#on: Listening to an event" do
+    describe "#on: Listens to an event" do
       subject { instance.on(:mask, :type, &callback) }
 
       let(:callback) { Proc.new{} }
@@ -203,7 +203,7 @@ describe XlibObj::Window do
       end
     end
 
-    describe "#off: Stopping listening to an event" do
+    describe "#off: Stops listening to an event" do
       subject { instance.off(:mask, :type, callback) }
 
       let(:callback) { Proc.new{} }
@@ -215,7 +215,7 @@ describe XlibObj::Window do
       it { is_expected.to be instance }
     end
 
-    describe "#handle: Handling an event" do
+    describe "#handle: Handles an event" do
       subject { instance.handle(:event) }
 
       before { allow(event_handler).to receive(:handle) }
@@ -224,7 +224,7 @@ describe XlibObj::Window do
       it { is_expected.to be instance }
     end
 
-    describe "#send_to_itself: Sending itself a client message" do
+    describe "#send_to_itself: Sends itself a client message" do
       subject { instance.send_to_itself(:type, :data, :subject) }
 
       let(:message) { instance_double(XlibObj::Event::ClientMessage) }
@@ -233,6 +233,69 @@ describe XlibObj::Window do
         with(:type, :data, :subject).and_return(message) }
 
       it { is_expected.to send_message(:send_to).to(message).with(instance) }
+    end
+
+    describe "#request_selection: Requests to be handed the current selection/clipboard content" do
+      subject { instance.request_selection(type: :CLIPBOARD, format: :UTF8_STRING,
+        property: :XSEL_DATA, &callback) }
+      let(:callback) { Proc.new{} }
+
+      before { allow(instance).to receive(:on).and_return(:event_handler) }
+      let(:type_atom) { instance_double(XlibObj::Atom, to_native: :type_atom) }
+      let(:format_atom) { instance_double(XlibObj::Atom, to_native: :format_atom) }
+      let(:property_atom) { instance_double(XlibObj::Atom, to_native: :property_atom) }
+      before { allow(XlibObj::Atom).to receive(:new).with(display, :CLIPBOARD).and_return(type_atom) }
+      before { allow(XlibObj::Atom).to receive(:new).with(display, :UTF8_STRING).and_return(format_atom) }
+      before { allow(XlibObj::Atom).to receive(:new).with(display, :XSEL_DATA).and_return(property_atom) }
+      before { allow(Xlib).to receive(:XConvertSelection) }
+      before { allow(Xlib).to receive(:XFlush) }
+
+      it { is_expected.to send_message(:on).to(instance).with(:no_event, :selection_notify).with_block }
+      it { is_expected.to send_message(:XConvertSelection).to(Xlib).with(:display_ptr, :type_atom,
+        :format_atom, :property_atom, :win_id, Xlib::CurrentTime) }
+      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to be instance }
+
+      context "when the clipboard content is ready" do
+        before { allow(instance).to receive(:on).and_yield(event) }
+        let(:event) { double(XlibObj::Event, selection: :CLIPBOARD, property: :XSEL_DATA) }
+
+        let(:selection_atom) { instance_double(XlibObj::Atom, name: :CLIPBOARD) }
+        before { allow(event).to receive(:selection).and_return(:selection_atom_id) }
+        before { allow(XlibObj::Atom).to receive(:new).with(display, :selection_atom_id).
+            and_return(selection_atom) }
+        before { allow(instance).to receive(:property).with(event.property).
+            and_return(:clipboard_content) }
+        before { allow(instance).to receive(:delete_property) }
+        before { allow(instance).to receive(:off) }
+
+        it { is_expected.to send_message(:call).to(callback).with(:clipboard_content, :CLIPBOARD) }
+        it { is_expected.to send_message(:off).to(instance).with(:no_event, :selection_notify, nil) }
+
+        context "when the reported type does not match the requested" do
+          before { allow(selection_atom).to receive(:name).and_return(:PRIMARY) }
+          it { is_expected.not_to send_message(:call).to(callback) }
+        end
+
+        context "when the reported property is None" do
+          before { allow(event).to receive(:property).and_return(Xlib::None) }
+          it { is_expected.to send_message(:call).to(callback).with(nil, any_args) }
+        end
+      end
+    end
+
+    describe "#create_window: Creates a simple sub window" do
+      it "needs to be spec'd"
+    end
+
+    describe "#destroy: Destroys it" do
+      subject { instance.destroy }
+      let(:event_handler) { XlibObj::Window::EventHandler.singleton(display, :win_id) }
+
+      before { allow(Xlib).to receive(:XDestroyWindow) }
+
+      it { is_expected.to send_message(:destroy).to(event_handler) }
+      it { is_expected.to send_message(:XDestroyWindow).to(Xlib).with(:display_ptr, :win_id) }
     end
   end
 end

@@ -71,49 +71,64 @@ describe XlibObj::Display do
       end
 
       context 'when there are waiting events' do
-        before { allow(Xlib).to receive(:XPending).with(display_ptr).
-          and_return(1, 0) } # 0 on second call so we exit the loop
+        before { allow(Xlib).to receive(:XPending).with(display_ptr).and_return(1, 0) }
+        # 0 on second call so we exit the loop
 
         let(:event_window) { instance_double(XlibObj::Window) }
         let(:parent_window) { instance_double(XlibObj::Window) }
         let(:window) { instance_double(XlibObj::Window) }
+        let(:requestor_window) { instance_double(XlibObj::Window) }
 
         before { allow(Xlib::XEvent).to receive(:new).and_return(:x_event) }
-        before { allow(Xlib).to receive(:XNextEvent).with(display_ptr,
-          :x_event) }
-        before { allow(XlibObj::Event).to receive(:new).with(:x_event).
-          and_return(event) }
-        before { allow(XlibObj::Window).to receive(:new).with(instance,
-          :event_window_id).and_return(event_window) }
-        before { allow(XlibObj::Window).to receive(:new).with(instance,
-          :parent_window_id).and_return(parent_window) }
-        before { allow(XlibObj::Window).to receive(:new).with(instance,
-          :window_id).and_return(window) }
+        before { allow(Xlib).to receive(:XNextEvent).with(display_ptr,:x_event) }
+        before { allow(XlibObj::Event).to receive(:new).with(:x_event).and_return(event) }
+        before { allow(XlibObj::Window).to receive(:new).with(instance, :event_window_id).
+            and_return(event_window) }
+        before { allow(XlibObj::Window).to receive(:new).with(instance, :parent_window_id).
+            and_return(parent_window) }
+        before { allow(XlibObj::Window).to receive(:new).with(instance, :window_id).
+            and_return(window) }
+        before { allow(XlibObj::Window).to receive(:new).with(instance, :requestor_id).
+            and_return(requestor_window) }
 
         context 'when the event member of the event carries a window' do
-          let(:event) { double(XlibObj::Event, event: :event_window_id,
-            parent: :parent_window_id, window: :window_id) }
-
-          it { is_expected.to send_message(:handle).to(event_window).
-            with(event) }
+          let(:event) { double(XlibObj::Event, event: :event_window_id, parent: :parent_window_id,
+            window: :window_id, requestor: :requestor_id) }
+          it { is_expected.to send_message(:handle).to(event_window).with(event) }
         end
 
         context 'when the parent member of the event carries a window' do
-          let(:event) { double(XlibObj::Event, event: nil,
-            parent: :parent_window_id, window: :window_id) }
-
-          it { is_expected.to send_message(:handle).to(parent_window).
-            with(event) }
+          let(:event) { double(XlibObj::Event, event: nil, parent: :parent_window_id,
+            window: :window_id, requestor: :requestor_id) }
+          it { is_expected.to send_message(:handle).to(parent_window).with(event) }
         end
 
         context 'when the window member of the event carries a window' do
-          let(:event) { double(XlibObj::Event, event: nil,
-            parent: nil, window: :window_id) }
+          let(:event) { double(XlibObj::Event, event: nil, parent: nil, window: :window_id,
+            requestor: :requestor_id) }
+          it { is_expected.to send_message(:handle).to(window).with(event) }
+        end
 
-          it { is_expected.to send_message(:handle).to(window).
-            with(event) }
+        context 'when the requestor member of the event carries a window' do
+          let(:event) { double(XlibObj::Event, event: nil, parent: nil, window: nil,
+            requestor: :requestor_id) }
+          it { is_expected.to send_message(:handle).to(requestor_window).with(event) }
         end
       end
+    end
+
+    describe "#clipboard: Gets the content of the given clipboard" do
+      subject { instance.clipboard(:CLIPBOARD, &callback) }
+      let(:callback) { Proc.new{} }
+
+      let(:screen) { instance_double(XlibObj::Screen, root_window: root_window) }
+      let(:root_window) { instance_double(XlibObj::Window, create_window: internal_window) }
+      let(:internal_window) { instance_double(XlibObj::Window, request_selection: nil) }
+      before { allow(instance).to receive(:screen).and_return(screen) }
+
+      it { is_expected.to send_message(:request_selection).to(internal_window).
+          with(type: :CLIPBOARD, &callback) }
+      it { is_expected.to be instance }
     end
 
     describe "#on_error" do

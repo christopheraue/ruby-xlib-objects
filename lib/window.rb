@@ -111,6 +111,43 @@ module XlibObj
 
     def send_to_itself(type, data = nil, subject = nil)
       Event::ClientMessage.new(type, data, subject).send_to(self)
+      self
+    end
+
+    def request_selection(type: :PRIMARY, format: :UTF8_STRING, property: :XSEL_DATA, &on_receive)
+      # will only receive the selection notify event, if the window has been created by the process
+      # running this very code
+      selection_handler = on(:no_event, :selection_notify) do |event|
+        next if Atom.new(@display, event.selection).name != type
+
+        if event.property == Xlib::None
+          selection = nil
+        else
+          selection = property(event.property)
+          delete_property(event.property)
+        end
+        on_receive.call(selection, type)
+        off(:no_event, :selection_notify, selection_handler)
+      end
+
+      type_atom = Atom.new(@display, type)
+      property_atom = Atom.new(@display, property)
+      format_atom = Atom.new(@display, format)
+      Xlib.XConvertSelection(@display.to_native, type_atom.to_native, format_atom.to_native,
+        property_atom.to_native, @to_native, Xlib::CurrentTime)
+      Xlib.XFlush(@display.to_native)
+      self
+    end
+
+    def create_window
+      black = Xlib.XBlackPixel(@display.to_native, 0)
+      win_id = Xlib.XCreateSimpleWindow(@display.to_native, to_native, 0, 0, 1, 1, 0, black, black)
+      XlibObj::Window.new(@display, win_id)
+    end
+
+    def destroy
+      @event_handler.destroy
+      Xlib.XDestroyWindow(@display.to_native, to_native)
     end
   end
 end

@@ -18,6 +18,24 @@ describe XlibObj::Window::EventHandler do
         it { is_expected.to be event_handler }
       end
     end
+
+    describe ".remove: Removes a handler from its registry" do
+      subject { klass.remove(display, :win_id) }
+
+      context "when a handler is registered" do
+        let(:handler) { klass.singleton(display, :win_id) }
+        it { is_expected.to be handler }
+
+        context "when the handler is tried to be removed again" do
+          before { subject }
+          it { is_expected.to be nil }
+        end
+      end
+
+      context "when no handler has been registered" do
+        it { is_expected.to be nil }
+      end
+    end
   end
 
   describe "The instance" do
@@ -25,14 +43,13 @@ describe XlibObj::Window::EventHandler do
     before { allow(Xlib).to receive(:XRRSelectInput) }
     before { allow(Xlib).to receive(:XFlush) }
 
-    describe ".on: Attaching a callback to an event mask and type" do
+    describe "#on: Attaching a callback to an event mask and type" do
       subject { instance.on(mask, type, &callback) }
 
       let(:callback) { Proc.new{} }
 
       context "when the event has not been registered before" do
-        context "when a standard X event and mask is given (e.g. property
-          notify)" do
+        context "when a standard X event and mask is given (e.g. property notify)" do
           let(:mask) { :property_change }
           let(:type) { :property_notify }
 
@@ -44,8 +61,7 @@ describe XlibObj::Window::EventHandler do
           it { is_expected.to be callback }
         end
 
-        context "when a randr event and mask is given (e.g. screen change
-          notify)" do
+        context "when a randr event and mask is given (e.g. screen change notify)" do
           let(:mask) { :screen_change_notify }
           let(:type) { :screen_change_notify }
 
@@ -61,8 +77,7 @@ describe XlibObj::Window::EventHandler do
       context "when the same event has been registered before" do
         before { instance.on(mask, type, &callback) }
 
-        context "when a standard X event and mask is given (e.g. property
-          notify)" do
+        context "when a standard X event and mask is given (e.g. property notify)" do
           let(:mask) { :property_change }
           let(:type) { :property_notify }
 
@@ -74,8 +89,7 @@ describe XlibObj::Window::EventHandler do
           it { is_expected.to be callback }
         end
 
-        context "when a randr event and mask is given (e.g. screen change
-          notify)" do
+        context "when a randr event and mask is given (e.g. screen change notify)" do
           let(:mask) { :screen_change_notify }
           let(:type) { :screen_change_notify }
 
@@ -88,12 +102,10 @@ describe XlibObj::Window::EventHandler do
         end
       end
 
-      context "when a standard X event has already been registered (e.g.
-        configure notify)" do
+      context "when a standard X event has already been registered (e.g. configure notify)" do
         before { instance.on(:structure_notify, :configure_notify, &callback) }
 
-        context "when a second, different standard X event and mask is given
-          (e.g. property notify)" do
+        context "when a second, different standard X event and mask is given (e.g. property notify)" do
           let(:mask) { :property_change }
           let(:type) { :property_notify }
 
@@ -108,12 +120,10 @@ describe XlibObj::Window::EventHandler do
         end
       end
 
-      context "when a randr event has already been registered (e.g. output
-        change notify)" do
+      context "when a randr event has already been registered (e.g. output change notify)" do
         before { instance.on(:output_change_notify, :notify, &callback) }
 
-        context "when a second, different standard randr event and mask is
-          given" do
+        context "when a second, different standard randr event and mask is given" do
           let(:mask) { :screen_change_notify }
           let(:type) { :screen_change_notify }
 
@@ -141,14 +151,13 @@ describe XlibObj::Window::EventHandler do
       end
     end
 
-    describe ".off: Detaching a callback from an event mask and type" do
+    describe "#off: Detaching a callback from an event mask and type" do
       subject { instance.off(mask, type, callback) }
 
       let(:callback) { Proc.new{} }
 
       context "when the event has not been registered before" do
-        context "when a standard X event and mask is given (e.g. property
-          notify)" do
+        context "when a standard X event and mask is given (e.g. property notify)" do
           let(:mask) { :property_change }
           let(:type) { :property_notify }
 
@@ -156,8 +165,7 @@ describe XlibObj::Window::EventHandler do
           it { is_expected.not_to send_message(:XFlush).to(Xlib) }
         end
 
-        context "when a randr event and mask is given (e.g. screen change
-          notify)" do
+        context "when a randr event and mask is given (e.g. screen change notify)" do
           let(:mask) { :screen_change_notify }
           let(:type) { :screen_change_notify }
 
@@ -169,8 +177,7 @@ describe XlibObj::Window::EventHandler do
       context "when the event has been registered before" do
         before { instance.on(mask, type, &callback) }
 
-        context "when a standard X event and mask is given (e.g. property
-          notify)" do
+        context "when a standard X event and mask is given (e.g. property notify)" do
           let(:mask) { :property_change }
           let(:type) { :property_notify }
 
@@ -180,8 +187,7 @@ describe XlibObj::Window::EventHandler do
             :display_ptr).twice }
         end
 
-        context "when a randr event and mask is given (e.g. screen change
-          notify)" do
+        context "when a randr event and mask is given (e.g. screen change notify)" do
           let(:mask) { :screen_change_notify }
           let(:type) { :screen_change_notify }
 
@@ -193,8 +199,7 @@ describe XlibObj::Window::EventHandler do
       end
 
       context "when a second, different event has been registered" do
-        context "when a standard X event and mask is given (e.g. property
-        notify)" do
+        context "when a standard X event and mask is given (e.g. property notify)" do
           let(:mask) { :property_change }
           let(:type) { :property_notify }
 
@@ -207,8 +212,7 @@ describe XlibObj::Window::EventHandler do
           it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
         end
 
-        context "when a randr event and mask is given (e.g. screen change
-        notify)" do
+        context "when a randr event and mask is given (e.g. screen change notify)" do
           let(:mask) { :screen_change_notify }
           let(:type) { :screen_change_notify }
 
@@ -225,8 +229,7 @@ describe XlibObj::Window::EventHandler do
       context "when the mask is used by another event" do
         before { instance.on(mask, :map_notify, &callback) }
 
-        context "when a standard X event and mask is given (e.g. property
-          notify)" do
+        context "when a standard X event and mask is given (e.g. property notify)" do
           let(:mask) { :property_change }
           let(:type) { :property_notify }
 
@@ -237,8 +240,7 @@ describe XlibObj::Window::EventHandler do
             :display_ptr).twice }
         end
 
-        context "when a randr event and mask is given (e.g. screen change
-          notify)" do
+        context "when a randr event and mask is given (e.g. screen change notify)" do
           let(:mask) { :screen_change_notify }
           let(:type) { :screen_change_notify }
 
@@ -251,7 +253,7 @@ describe XlibObj::Window::EventHandler do
       end
     end
 
-    describe ".handle: Handling an event" do
+    describe "#handle: Handling an event" do
       subject { instance.handle(event) }
 
       let(:event) { instance_double(XlibObj::Event, name: event_name) }
@@ -271,6 +273,11 @@ describe XlibObj::Window::EventHandler do
         it { is_expected.to send_message(:call).to(callback2).with(event) }
         it { is_expected.to be true }
       end
+    end
+
+    describe "#destroy: Destroys it" do
+      subject { instance.destroy }
+      it { is_expected.to send_message(:remove).to(klass).with(display, :win_id) }
     end
   end
 end

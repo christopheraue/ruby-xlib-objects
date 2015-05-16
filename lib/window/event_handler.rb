@@ -15,6 +15,10 @@ module XlibObj
           @handlers[display] ||= {}
           @handlers[display][window_id] ||= new(display, window_id)
         end
+
+        def remove(display, window_id)
+          @handlers[display].delete(window_id) if @handlers and @handlers[display]
+        end
       end
 
       def initialize(display, window_id)
@@ -44,6 +48,10 @@ module XlibObj
         else
           false
         end
+      end
+
+      def destroy
+        self.class.remove(@display, @window_id)
       end
 
       private
@@ -91,7 +99,7 @@ module XlibObj
       end
 
       def check_mask(mask)
-        if normalize_mask(mask).zero? && normalize_rr_mask(mask).zero?
+        if XlibObj::Event::MASK[mask].nil? && XlibObj::Event::RR_MASK[mask].nil?
           raise("Unknown event mask #{mask}.")
         end
       end
