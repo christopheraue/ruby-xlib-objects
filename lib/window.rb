@@ -119,6 +119,7 @@ module XlibObj
       # running this very code
       selection_handler = on(:no_event, :selection_notify) do |event|
         next if Atom.new(@display, event.selection).name != type
+        next if Atom.new(@display, event.target).name != format
 
         if event.property == Xlib::None
           selection = nil
@@ -126,7 +127,8 @@ module XlibObj
           selection = property(event.property)
           delete_property(event.property)
         end
-        on_receive.call(selection, type)
+        selection_owner = Window.new(@display, Xlib.XGetSelectionOwner(@display, event.selection))
+        on_receive.call(selection, type, selection_owner)
         off(:no_event, :selection_notify, selection_handler)
       end
 
@@ -142,7 +144,7 @@ module XlibObj
     def create_window
       black = Xlib.XBlackPixel(@display.to_native, 0)
       win_id = Xlib.XCreateSimpleWindow(@display.to_native, to_native, 0, 0, 1, 1, 0, black, black)
-      XlibObj::Window.new(@display, win_id)
+      Window.new(@display, win_id)
     end
 
     def destroy

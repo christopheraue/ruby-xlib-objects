@@ -258,22 +258,35 @@ describe XlibObj::Window do
 
       context "when the clipboard content is ready" do
         before { allow(instance).to receive(:on).and_yield(event) }
-        let(:event) { double(XlibObj::Event, selection: :CLIPBOARD, property: :XSEL_DATA) }
+        let(:event) { double(XlibObj::Event, selection: :selection_atom_id, target: :target_atom_id,
+          property: :property_atom_id) }
 
         let(:selection_atom) { instance_double(XlibObj::Atom, name: :CLIPBOARD) }
-        before { allow(event).to receive(:selection).and_return(:selection_atom_id) }
         before { allow(XlibObj::Atom).to receive(:new).with(display, :selection_atom_id).
             and_return(selection_atom) }
-        before { allow(instance).to receive(:property).with(event.property).
+        let(:target_atom) { instance_double(XlibObj::Atom, name: :UTF8_STRING) }
+        before { allow(XlibObj::Atom).to receive(:new).with(display, :target_atom_id).
+            and_return(target_atom) }
+        before { allow(Xlib).to receive(:XGetSelectionOwner).with(display, :selection_atom_id).
+            and_return(:owner_id) }
+        before { allow(XlibObj::Window).to receive(:new).with(display, :owner_id).
+            and_return(:selection_owner) }
+        before { allow(instance).to receive(:property).with(:property_atom_id).
             and_return(:clipboard_content) }
         before { allow(instance).to receive(:delete_property) }
         before { allow(instance).to receive(:off) }
 
-        it { is_expected.to send_message(:call).to(callback).with(:clipboard_content, :CLIPBOARD) }
+        it { is_expected.to send_message(:call).to(callback).with(:clipboard_content, :CLIPBOARD,
+            :selection_owner) }
         it { is_expected.to send_message(:off).to(instance).with(:no_event, :selection_notify, nil) }
 
-        context "when the reported type does not match the requested" do
+        context "when the reported type does not match the requested type" do
           before { allow(selection_atom).to receive(:name).and_return(:PRIMARY) }
+          it { is_expected.not_to send_message(:call).to(callback) }
+        end
+
+        context "when the reported format does not match the requested format" do
+          before { allow(target_atom).to receive(:name).and_return(:STRING) }
           it { is_expected.not_to send_message(:call).to(callback) }
         end
 
