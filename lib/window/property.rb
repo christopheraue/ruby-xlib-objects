@@ -73,6 +73,10 @@ module XlibObj
         self
       end
 
+      def delete
+        Xlib.XDeleteProperty(@window.display.to_native, @window.to_native, @atom.to_native)
+      end
+
       private
       def read_bytes(pointer, width, count)
         pointer.read_pointer.read_string(count*native_width(width))

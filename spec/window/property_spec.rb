@@ -3,8 +3,7 @@ describe XlibObj::Window::Property do
   subject(:instance) { klass.new(window, :property_name) }
 
   let(:display) { instance_double(XlibObj::Display, to_native: :display_ptr) }
-  let(:window) { instance_double(XlibObj::Window, display: display, to_native:
-    :win_id) }
+  let(:window) { instance_double(XlibObj::Window, display: display, to_native: :win_id) }
   let(:property_atom) { instance_double(XlibObj::Atom, to_native: :atom_id) }
 
   before { allow(XlibObj::Atom).to receive(:new).with(display, :property_name).
@@ -246,6 +245,12 @@ describe XlibObj::Window::Property do
             [value].pack('L!'), 1)
         end
       end
+    end
+
+    describe "#delete: Deletes it" do
+      subject { instance.delete }
+      it { is_expected.to send_message(:XDeleteProperty).to(Xlib).with(:display_ptr, :win_id,
+          :atom_id) }
     end
   end
 end

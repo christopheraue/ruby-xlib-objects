@@ -80,9 +80,20 @@ describe XlibObj::Window do
       let(:property) { instance_double(XlibObj::Window::Property) }
 
       before { allow(XlibObj::Window::Property).to receive(:new).with(instance,
-        :property_key).and_return(property) }
+          :property_key).and_return(property) }
 
       it { is_expected.to send_message(:set).to(property).with(:new_value) }
+    end
+
+    describe "#delete_property: Deletes one of its properties" do
+      subject { instance.delete_property(:property_key) }
+
+      let(:property) { instance_double(XlibObj::Window::Property) }
+
+      before { allow(XlibObj::Window::Property).to receive(:new).with(instance,
+          :property_key).and_return(property) }
+
+      it { is_expected.to send_message(:delete).to(property) }
     end
 
     describe "#absolute_position: Getting is position relative to the root

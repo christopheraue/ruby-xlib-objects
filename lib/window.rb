@@ -42,6 +42,10 @@ module XlibObj
       Property.new(self, name).set(value)
     end
 
+    def delete_property(name)
+      Property.new(self, name).delete
+    end
+
     def absolute_position
       x_abs = FFI::MemoryPointer.new :int
       y_abs = FFI::MemoryPointer.new :int
