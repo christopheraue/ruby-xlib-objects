@@ -38,14 +38,6 @@ module XlibObj
       Property.new(self, name).get
     end
 
-    def set_property(name, value)
-      Property.new(self, name).set(value)
-    end
-
-    def delete_property(name)
-      Property.new(self, name).delete
-    end
-
     def absolute_position
       x_abs = FFI::MemoryPointer.new :int
       y_abs = FFI::MemoryPointer.new :int
@@ -58,7 +50,22 @@ module XlibObj
       { x: x_abs.read_int, y: y_abs.read_int }
     end
 
+    def focused?
+      focused_window = FFI::MemoryPointer.new :Window
+      focus_state = FFI::MemoryPointer.new :int
+      Xlib.XGetInputFocus(@display.to_native, focused_window, focus_state)
+      focused_window.read_int == @to_native
+    end
+
     # Commands
+    def set_property(name, value)
+      Property.new(self, name).set(value)
+    end
+
+    def delete_property(name)
+      Property.new(self, name).delete
+    end
+
     def move_resize(x, y, width, height)
       Xlib.XMoveResizeWindow(@display.to_native, @to_native, x, y, width, height)
       Xlib.XFlush(@display.to_native)

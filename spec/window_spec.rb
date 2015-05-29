@@ -96,22 +96,37 @@ describe XlibObj::Window do
       it { is_expected.to send_message(:delete).to(property) }
     end
 
-    describe "#absolute_position: Getting is position relative to the root
-      window" do
+    describe "#absolute_position: Getting is position relative to the root window" do
       subject { instance.absolute_position }
 
-      let(:root_win) { instance_double(XlibObj::Window, to_native:
-        :root_win_id) }
+      let(:root_win) { instance_double(XlibObj::Window, to_native: :root_win_id) }
 
       before { allow(FFI::MemoryPointer).to receive(:new) }
       before { allow(FFI::MemoryPointer).to receive(:new).with(:int).
         and_return(instance_double(FFI::MemoryPointer, read_int: 0),
           instance_double(FFI::MemoryPointer, read_int: 1)) }
-      before { allow(instance).to receive_message_chain(:screen, :root_window).
-        and_return(root_win) }
+      before { allow(instance).to receive_message_chain(:screen, :root_window).and_return(root_win) }
       before { allow(Xlib).to receive(:XTranslateCoordinates) }
 
       it { is_expected.to eq(x: 0, y: 1) }
+    end
+
+    describe "#focused?: Checks if the window currently has the input focus" do
+      subject { instance.focused? }
+
+      before { allow(FFI::MemoryPointer).to receive(:new).with(:Window).and_return(window_ptr) }
+      before { allow(FFI::MemoryPointer).to receive(:new).with(:int).and_return(:int_ptr) }
+      before { allow(Xlib).to receive(:XGetInputFocus).with(:display_ptr, window_ptr, :int_ptr) }
+
+      context "when the returned window id matches the id of the instance" do
+        let(:window_ptr) { instance_double(FFI::MemoryPointer, read_int: instance.id) }
+        it { is_expected.to be true }
+      end
+
+      context "when the returned window id does not match the id of the instance" do
+        let(:window_ptr) { instance_double(FFI::MemoryPointer, read_int: :another_id) }
+        it { is_expected.to be false }
+      end
     end
 
     describe "#move_resize: Moving and/or resizing the window" do
