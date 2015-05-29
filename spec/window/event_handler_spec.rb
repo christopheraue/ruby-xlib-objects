@@ -23,11 +23,11 @@ describe XlibObj::Window::EventHandler do
       subject { klass.remove(display, :win_id) }
 
       context "when a handler is registered" do
-        let(:handler) { klass.singleton(display, :win_id) }
-        it { is_expected.to be handler }
+        let!(:receiver) { klass.singleton(display, :win_id) }
+        it { is_expected.to be receiver }
 
         context "when the handler is tried to be removed again" do
-          before { subject }
+          before { klass.remove(display, :win_id) }
           it { is_expected.to be nil }
         end
       end
@@ -54,8 +54,8 @@ describe XlibObj::Window::EventHandler do
           let(:type) { :property_notify }
 
           it "selects the mask" do
-            is_expected.to send_message(:XSelectInput).to(Xlib).with(
-            :display_ptr, :win_id, Xlib::PropertyChangeMask)
+            is_expected.to send_message(:XSelectInput).to(Xlib).with(:display_ptr, :win_id,
+                Xlib::PropertyChangeMask)
           end
           it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
           it { is_expected.to be callback }
@@ -66,8 +66,8 @@ describe XlibObj::Window::EventHandler do
           let(:type) { :screen_change_notify }
 
           it "selects the mask" do
-            is_expected.to send_message(:XRRSelectInput).to(Xlib).with(
-              :display_ptr, :win_id, Xlib::RRScreenChangeNotifyMask)
+            is_expected.to send_message(:XRRSelectInput).to(Xlib).with(:display_ptr, :win_id,
+                Xlib::RRScreenChangeNotifyMask)
           end
           it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
           it { is_expected.to be callback }
@@ -82,8 +82,8 @@ describe XlibObj::Window::EventHandler do
           let(:type) { :property_notify }
 
           it "does not select the mask again" do
-            is_expected.not_to send_message(:XSelectInput).to(Xlib).with(
-            :display_ptr, :win_id, Xlib::PropertyChangeMask).twice
+            is_expected.not_to send_message(:XSelectInput).to(Xlib).with(:display_ptr, :win_id,
+                Xlib::PropertyChangeMask).twice
           end
           it { is_expected.not_to send_message(:XFlush).to(Xlib).twice }
           it { is_expected.to be callback }
@@ -94,8 +94,8 @@ describe XlibObj::Window::EventHandler do
           let(:type) { :screen_change_notify }
 
           it "does not select the mask again" do
-            is_expected.not_to send_message(:XRRSelectInput).to(Xlib).with(
-              :display_ptr, :win_id, Xlib::RRScreenChangeNotifyMask).twice
+            is_expected.not_to send_message(:XRRSelectInput).to(Xlib).with(:display_ptr, :win_id,
+                Xlib::RRScreenChangeNotifyMask).twice
           end
           it { is_expected.not_to send_message(:XFlush).to(Xlib).twice }
           it { is_expected.to be callback }
@@ -110,12 +110,10 @@ describe XlibObj::Window::EventHandler do
           let(:type) { :property_notify }
 
           it "selects both masks" do
-            is_expected.to send_message(:XSelectInput).to(Xlib).with(
-              :display_ptr, :win_id, Xlib::PropertyChangeMask |
-              Xlib::StructureNotifyMask)
+            is_expected.to send_message(:XSelectInput).to(Xlib).with(:display_ptr, :win_id,
+                Xlib::PropertyChangeMask | Xlib::StructureNotifyMask)
           end
-          it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr).
-            twice }
+          it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr).twice }
           it { is_expected.to be callback }
         end
       end
@@ -128,12 +126,10 @@ describe XlibObj::Window::EventHandler do
           let(:type) { :screen_change_notify }
 
           it "selects both randr masks" do
-            is_expected.to send_message(:XRRSelectInput).to(Xlib).with(
-              :display_ptr, :win_id, Xlib::RRScreenChangeNotifyMask |
-              Xlib::RROutputChangeNotifyMask)
+            is_expected.to send_message(:XRRSelectInput).to(Xlib).with(:display_ptr, :win_id,
+                Xlib::RRScreenChangeNotifyMask | Xlib::RROutputChangeNotifyMask)
           end
-          it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr).
-            twice }
+          it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr).twice }
           it { is_expected.to be callback }
         end
       end
@@ -152,9 +148,10 @@ describe XlibObj::Window::EventHandler do
     end
 
     describe "#off: Detaching a callback from an event mask and type" do
-      subject { instance.off(mask, type, callback) }
+      subject { instance.off(mask, type, callback); instance.handle(event) }
 
       let(:callback) { Proc.new{} }
+      let(:event) { instance_double(XlibObj::Event, name: type) }
 
       context "when the event has not been registered before" do
         context "when a standard X event and mask is given (e.g. property notify)" do
@@ -163,6 +160,7 @@ describe XlibObj::Window::EventHandler do
 
           it { is_expected.not_to send_message(:XSelectInput).to(Xlib) }
           it { is_expected.not_to send_message(:XFlush).to(Xlib) }
+          it { is_expected.not_to send_message(:call).to(callback) }
         end
 
         context "when a randr event and mask is given (e.g. screen change notify)" do
@@ -171,6 +169,7 @@ describe XlibObj::Window::EventHandler do
 
           it { is_expected.not_to send_message(:XRRSelectInput).to(Xlib) }
           it { is_expected.not_to send_message(:XFlush).to(Xlib) }
+          it { is_expected.not_to send_message(:call).to(callback) }
         end
       end
 
@@ -181,20 +180,18 @@ describe XlibObj::Window::EventHandler do
           let(:mask) { :property_change }
           let(:type) { :property_notify }
 
-          it { is_expected.to send_message(:XSelectInput).to(Xlib).with(
-            :display_ptr, :win_id, 0) }
-          it { is_expected.to send_message(:XFlush).to(Xlib).with(
-            :display_ptr).twice }
+          it { is_expected.to send_message(:XSelectInput).to(Xlib).with(:display_ptr, :win_id, 0) }
+          it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr).twice }
+          it { is_expected.not_to send_message(:call).to(callback) }
         end
 
         context "when a randr event and mask is given (e.g. screen change notify)" do
           let(:mask) { :screen_change_notify }
           let(:type) { :screen_change_notify }
 
-          it { is_expected.to send_message(:XRRSelectInput).to(Xlib).with(
-            :display_ptr, :win_id, 0) }
-          it { is_expected.to send_message(:XFlush).to(Xlib).with(
-            :display_ptr).twice }
+          it { is_expected.to send_message(:XRRSelectInput).to(Xlib).with(:display_ptr, :win_id, 0) }
+          it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr).twice }
+          it { is_expected.not_to send_message(:call).to(callback) }
         end
       end
 
@@ -206,10 +203,11 @@ describe XlibObj::Window::EventHandler do
           before { instance.on(:structure_notify, :configure_notify, &callback) }
 
           it "leaves the mask of the second event intact" do
-            is_expected.to send_message(:XSelectInput).to(Xlib).with(
-              :display_ptr, :win_id, Xlib::StructureNotifyMask)
+            is_expected.to send_message(:XSelectInput).to(Xlib).with(:display_ptr, :win_id,
+                Xlib::StructureNotifyMask)
           end
           it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+          it { is_expected.not_to send_message(:call).to(callback) }
         end
 
         context "when a randr event and mask is given (e.g. screen change notify)" do
@@ -219,10 +217,11 @@ describe XlibObj::Window::EventHandler do
           before { instance.on(:output_change_notify, :notify, &callback) }
 
           it "leaves the mask of the second event intact" do
-            is_expected.to send_message(:XRRSelectInput).to(Xlib).with(
-              :display_ptr, :win_id, Xlib::RROutputChangeNotifyMask)
+            is_expected.to send_message(:XRRSelectInput).to(Xlib).with(:display_ptr, :win_id,
+                Xlib::RROutputChangeNotifyMask)
           end
           it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+          it { is_expected.not_to send_message(:call).to(callback) }
         end
       end
 
@@ -236,8 +235,8 @@ describe XlibObj::Window::EventHandler do
           it "does not deselect the mask" do
             is_expected.not_to send_message(:XSelectInput).to(Xlib).twice
           end
-          it { is_expected.not_to send_message(:XFlush).to(Xlib).with(
-            :display_ptr).twice }
+          it { is_expected.not_to send_message(:XFlush).to(Xlib).with(:display_ptr).twice }
+          it { is_expected.not_to send_message(:call).to(callback) }
         end
 
         context "when a randr event and mask is given (e.g. screen change notify)" do
@@ -247,8 +246,23 @@ describe XlibObj::Window::EventHandler do
           it "does not deselect the mask" do
             is_expected.not_to send_message(:XRRSelectInput).to(Xlib).twice
           end
-          it { is_expected.not_to send_message(:XFlush).to(Xlib).with(
-            :display_ptr).twice }
+          it { is_expected.not_to send_message(:XFlush).to(Xlib).with(:display_ptr).twice }
+          it { is_expected.not_to send_message(:call).to(callback) }
+        end
+      end
+
+      context "when no callback is given" do
+        subject { instance.off(mask, type); instance.handle(event) }
+
+        context "when the event has been registered before" do
+          before { instance.on(mask, type, &callback) }
+
+          let(:mask) { :property_change }
+          let(:type) { :property_notify }
+
+          it { is_expected.to send_message(:XSelectInput).to(Xlib).with(:display_ptr, :win_id, 0) }
+          it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr).twice }
+          it { is_expected.not_to send_message(:call).to(callback) }
         end
       end
     end

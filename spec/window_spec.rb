@@ -204,15 +204,20 @@ describe XlibObj::Window do
     end
 
     describe "#off: Stops listening to an event" do
-      subject { instance.off(:mask, :type, callback) }
-
-      let(:callback) { Proc.new{} }
-
       before { allow(event_handler).to receive(:off) }
 
-      it { is_expected.to send_message(:off).to(event_handler).with(:mask,
-        :type, callback) }
       it { is_expected.to be instance }
+
+      context "when a callback is given" do
+        subject { instance.off(:mask, :type, callback) }
+        let(:callback) { Proc.new{} }
+        it { is_expected.to send_message(:off).to(event_handler).with(:mask, :type, callback) }
+      end
+
+      context "when no callback is given" do
+        subject { instance.off(:mask, :type) }
+        it { is_expected.to send_message(:off).to(event_handler).with(:mask, :type, nil) }
+      end
     end
 
     describe "#handle: Handles an event" do

@@ -34,7 +34,7 @@ module XlibObj
         add_event_handler(mask, event, &handler)
       end
 
-      def off(mask, type, handler)
+      def off(mask, type, handler = nil)
         remove_event_handler(mask, type, handler)
         remove_event_mask(mask)
       end
@@ -84,8 +84,8 @@ module XlibObj
         check_event(event)
         return unless mask_in_use?(mask)
         return unless @event_handlers[event]
-        @event_handlers[event][mask].delete(handler)
-        @event_handlers[event].delete(mask) if @event_handlers[event][mask].empty?
+        @event_handlers[event][mask].delete(handler) if handler
+        @event_handlers[event].delete(mask) if @event_handlers[event][mask].empty? or handler.nil?
         @event_handlers.delete(event) if @event_handlers[event].empty?
       end
 

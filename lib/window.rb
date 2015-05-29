@@ -99,7 +99,7 @@ module XlibObj
       @event_handler.on(mask, type, &callback)
     end
 
-    def off(mask, type, callback)
+    def off(mask, type, callback = nil)
       @event_handler.off(mask, type, callback)
       self
     end
