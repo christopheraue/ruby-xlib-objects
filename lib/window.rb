@@ -106,6 +106,12 @@ module XlibObj
       @event_handler.on(mask, type, &callback)
     end
 
+    def until_true(mask, type, &callback)
+      handler = on(mask, type) do |*args|
+        off(mask, type, handler) if callback.call(*args)
+      end
+    end
+
     def off(mask, type, callback = nil)
       @event_handler.off(mask, type, callback)
       self
@@ -121,30 +127,76 @@ module XlibObj
       self
     end
 
-    def request_selection(type: :PRIMARY, format: :UTF8_STRING, property: :XSEL_DATA, &on_receive)
+    def request_selection(type = :PRIMARY, target: :UTF8_STRING, property: :XSEL_DATA, &on_receive)
       # will only receive the selection notify event, if the window has been created by the process
       # running this very code
-      selection_handler = on(:no_event, :selection_notify) do |event|
-        next if Atom.new(@display, event.selection).name != type
-        next if Atom.new(@display, event.target).name != format
+      until_true(:no_event, :selection_notify) do |event|
+        break false if Atom.new(@display, event.selection).name != type
+        break false if Atom.new(@display, event.target).name != target
 
+        # query selection content
         if event.property == Xlib::None
           selection = nil
         else
           selection = property(event.property)
           delete_property(event.property)
         end
-        selection_owner = Window.new(@display, Xlib.XGetSelectionOwner(@display, event.selection))
+
+        # send selection to callback
+        selection_owner = Window.new(@display, Xlib.XGetSelectionOwner(@display.to_native, event.selection))
         on_receive.call(selection, type, selection_owner)
-        off(:no_event, :selection_notify, selection_handler)
+
+        true
       end
 
+      # request the selection
       type_atom = Atom.new(@display, type)
+      target_atom = Atom.new(@display, target)
       property_atom = Atom.new(@display, property)
-      format_atom = Atom.new(@display, format)
-      Xlib.XConvertSelection(@display.to_native, type_atom.to_native, format_atom.to_native,
+      Xlib.XConvertSelection(@display.to_native, type_atom.to_native, target_atom.to_native,
         property_atom.to_native, @to_native, Xlib::CurrentTime)
       Xlib.XFlush(@display.to_native)
+
+      self
+    end
+
+    def set_selection(type = :PRIMARY, targets: [:UTF8_STRING, :STRING, :TEXT], &on_request)
+      type_atom = Atom.new(@display, type)
+      Xlib.XSetSelectionOwner(@display.to_native, type_atom.to_native, to_native, Xlib::CurrentTime)
+
+      request_handler = on(:no_event, :selection_request) do |event|
+        break if Atom.new(@display, event.selection).name != type
+
+        # convert selection
+        target = Atom.new(@display, event.target).name
+        selection = if target == :TARGETS
+                      (targets + [:TARGETS]).map{ |t| Atom.new(@display, t) }
+                    elsif targets.include? target
+                      on_request.call(target)
+                    end
+
+        # set property on requestor
+        requestor = Window.new(@display, event.requestor)
+        if selection
+          property = event.property == Xlib::None ? event.target : event.property
+          requestor.set_property(property, selection)
+
+          # notify requestor of set property
+          Event::SelectionNotify.new(type: event.selection, target: event.target, property: property).
+            send_to(requestor)
+        else
+          # notify requestor of failed conversion
+          Event::SelectionNotify.new(type: event.selection, target: event.target, property: Xlib::None).
+            send_to(requestor)
+        end
+      end
+
+      until_true(:no_event, :selection_clear) do |event|
+        break false if Atom.new(@display, event.selection).name != type
+        off(:no_event, :selection_request, request_handler)
+        true
+      end
+
       self
     end
 

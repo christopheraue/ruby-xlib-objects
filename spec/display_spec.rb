@@ -77,6 +77,7 @@ describe XlibObj::Display do
         let(:event_window) { instance_double(XlibObj::Window) }
         let(:parent_window) { instance_double(XlibObj::Window) }
         let(:window) { instance_double(XlibObj::Window) }
+        let(:owner_window) { instance_double(XlibObj::Window) }
         let(:requestor_window) { instance_double(XlibObj::Window) }
 
         before { allow(Xlib::XEvent).to receive(:new).and_return(:x_event) }
@@ -88,37 +89,45 @@ describe XlibObj::Display do
             and_return(parent_window) }
         before { allow(XlibObj::Window).to receive(:new).with(instance, :window_id).
             and_return(window) }
+        before { allow(XlibObj::Window).to receive(:new).with(instance, :owner_id).
+            and_return(owner_window) }
         before { allow(XlibObj::Window).to receive(:new).with(instance, :requestor_id).
             and_return(requestor_window) }
 
         context 'when the event member of the event carries a window' do
           let(:event) { double(XlibObj::Event, event: :event_window_id, parent: :parent_window_id,
-            window: :window_id, requestor: :requestor_id) }
+            window: :window_id, owner: :owner_id, requestor: :requestor_id) }
           it { is_expected.to send_message(:handle).to(event_window).with(event) }
         end
 
         context 'when the parent member of the event carries a window' do
           let(:event) { double(XlibObj::Event, event: nil, parent: :parent_window_id,
-            window: :window_id, requestor: :requestor_id) }
+            window: :window_id, owner: :owner_id, requestor: :requestor_id) }
           it { is_expected.to send_message(:handle).to(parent_window).with(event) }
         end
 
         context 'when the window member of the event carries a window' do
           let(:event) { double(XlibObj::Event, event: nil, parent: nil, window: :window_id,
-            requestor: :requestor_id) }
+            owner: :owner_id, requestor: :requestor_id) }
           it { is_expected.to send_message(:handle).to(window).with(event) }
         end
 
+        context 'when the owner member of the event carries a window' do
+          let(:event) { double(XlibObj::Event, event: nil, parent: nil, window: nil, owner: :owner_id,
+            requestor: :requestor_id) }
+          it { is_expected.to send_message(:handle).to(owner_window).with(event) }
+        end
+
         context 'when the requestor member of the event carries a window' do
-          let(:event) { double(XlibObj::Event, event: nil, parent: nil, window: nil,
+          let(:event) { double(XlibObj::Event, event: nil, parent: nil, window: nil, owner: nil,
             requestor: :requestor_id) }
           it { is_expected.to send_message(:handle).to(requestor_window).with(event) }
         end
       end
     end
 
-    describe "#clipboard: Gets the content of the given clipboard" do
-      subject { instance.clipboard(:CLIPBOARD, &callback) }
+    describe "#selection: Gets the content of the given selection" do
+      subject { instance.selection(:CLIPBOARD, &callback) }
       let(:callback) { Proc.new{} }
 
       let(:screen) { instance_double(XlibObj::Screen, root_window: root_window) }
@@ -127,7 +136,21 @@ describe XlibObj::Display do
       before { allow(instance).to receive(:screen).and_return(screen) }
 
       it { is_expected.to send_message(:request_selection).to(internal_window).
-          with(type: :CLIPBOARD, &callback) }
+          with(:CLIPBOARD, &callback) }
+      it { is_expected.to be instance }
+    end
+
+    describe "#set_selection: Sets the content of the given selection" do
+      subject { instance.set_selection(:CLIPBOARD, &callback) }
+      let(:callback) { Proc.new{} }
+
+      let(:screen) { instance_double(XlibObj::Screen, root_window: root_window) }
+      let(:root_window) { instance_double(XlibObj::Window, create_window: internal_window) }
+      let(:internal_window) { instance_double(XlibObj::Window, set_selection: nil) }
+      before { allow(instance).to receive(:screen).and_return(screen) }
+
+      it { is_expected.to send_message(:set_selection).to(internal_window).
+          with(:CLIPBOARD, &callback) }
       it { is_expected.to be instance }
     end
 

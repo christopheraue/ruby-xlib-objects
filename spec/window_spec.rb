@@ -256,11 +256,11 @@ describe XlibObj::Window do
     end
 
     describe "#request_selection: Requests to be handed the current selection/clipboard content" do
-      subject { instance.request_selection(type: :CLIPBOARD, format: :UTF8_STRING,
-        property: :XSEL_DATA, &callback) }
+      subject { instance.request_selection(:CLIPBOARD, target: :UTF8_STRING, property: :XSEL_DATA,
+        &callback) }
       let(:callback) { Proc.new{} }
 
-      before { allow(instance).to receive(:on).and_return(:event_handler) }
+      before { allow(instance).to receive(:until_true).and_return(:event_handler) }
       let(:type_atom) { instance_double(XlibObj::Atom, to_native: :type_atom) }
       let(:format_atom) { instance_double(XlibObj::Atom, to_native: :format_atom) }
       let(:property_atom) { instance_double(XlibObj::Atom, to_native: :property_atom) }
@@ -270,14 +270,15 @@ describe XlibObj::Window do
       before { allow(Xlib).to receive(:XConvertSelection) }
       before { allow(Xlib).to receive(:XFlush) }
 
-      it { is_expected.to send_message(:on).to(instance).with(:no_event, :selection_notify).with_block }
+      it { is_expected.to send_message(:until_true).to(instance).with(:no_event, :selection_notify).
+          with_block }
       it { is_expected.to send_message(:XConvertSelection).to(Xlib).with(:display_ptr, :type_atom,
         :format_atom, :property_atom, :win_id, Xlib::CurrentTime) }
       it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
       it { is_expected.to be instance }
 
       context "when the clipboard content is ready" do
-        before { allow(instance).to receive(:on).and_yield(event) }
+        before { allow(instance).to receive(:until_true).and_yield(event) }
         let(:event) { double(XlibObj::Event, selection: :selection_atom_id, target: :target_atom_id,
           property: :property_atom_id) }
 
@@ -287,7 +288,7 @@ describe XlibObj::Window do
         let(:target_atom) { instance_double(XlibObj::Atom, name: :UTF8_STRING) }
         before { allow(XlibObj::Atom).to receive(:new).with(display, :target_atom_id).
             and_return(target_atom) }
-        before { allow(Xlib).to receive(:XGetSelectionOwner).with(display, :selection_atom_id).
+        before { allow(Xlib).to receive(:XGetSelectionOwner).with(:display_ptr, :selection_atom_id).
             and_return(:owner_id) }
         before { allow(XlibObj::Window).to receive(:new).with(display, :owner_id).
             and_return(:selection_owner) }
@@ -298,7 +299,6 @@ describe XlibObj::Window do
 
         it { is_expected.to send_message(:call).to(callback).with(:clipboard_content, :CLIPBOARD,
             :selection_owner) }
-        it { is_expected.to send_message(:off).to(instance).with(:no_event, :selection_notify, nil) }
 
         context "when the reported type does not match the requested type" do
           before { allow(selection_atom).to receive(:name).and_return(:PRIMARY) }
@@ -313,6 +313,70 @@ describe XlibObj::Window do
         context "when the reported property is None" do
           before { allow(event).to receive(:property).and_return(Xlib::None) }
           it { is_expected.to send_message(:call).to(callback).with(nil, any_args) }
+        end
+      end
+    end
+
+    describe "#set_selection: Sets the request handler for a given selection" do
+      subject { instance.set_selection(:CLIPBOARD, targets: [:UTF8_STRING], &callback) }
+      let(:callback) { Proc.new{ 'selection' } }
+
+      let(:type_atom) { instance_double(XlibObj::Atom, to_native: :type_atom_id) }
+      before { allow(XlibObj::Atom).to receive(:new).with(display, :CLIPBOARD).and_return(type_atom) }
+      before { allow(instance).to receive_messages(on: :request_handler, until_true: :clear_handler) }
+      before { allow(Xlib).to receive(:XSetSelectionOwner) }
+
+      it { is_expected.to send_message(:XSetSelectionOwner).to(Xlib).with(:display_ptr, :type_atom_id,
+          :win_id, Xlib::CurrentTime) }
+      it { is_expected.to send_message(:on).to(instance).with(:no_event, :selection_request).
+          with_block }
+      it { is_expected.to send_message(:until_true).to(instance).with(:no_event, :selection_clear).
+          with_block }
+      it { is_expected.to be instance }
+
+      context "when a request comes in" do
+        before { allow(instance).to receive(:on).with(:no_event, :selection_request).and_yield(event) }
+        let(:event) { double(XlibObj::Event, selection: :selection_atom_id, target: :target_atom_id,
+          property: :property_atom_id, requestor: :requestor_id) }
+
+        let(:selection_atom) { instance_double(XlibObj::Atom, name: :CLIPBOARD) }
+        let(:target_atom) { instance_double(XlibObj::Atom, name: :UTF8_STRING) }
+        let(:requestor) { instance_double(XlibObj::Window, set_property: nil) }
+        let(:selection_notify) { instance_double(XlibObj::Event::SelectionNotify, send_to: true) }
+        before { allow(XlibObj::Atom).to receive(:new).with(display, :selection_atom_id).
+            and_return(selection_atom) }
+        before { allow(XlibObj::Atom).to receive(:new).with(display, :target_atom_id).
+            and_return(target_atom) }
+        before { allow(XlibObj::Window).to receive(:new).with(display, :requestor_id).
+            and_return(requestor) }
+        before { allow(XlibObj::Event::SelectionNotify).to receive(:new).with(type: :selection_atom_id,
+            target: :target_atom_id, property: :property_atom_id).and_return(selection_notify) }
+
+        context "when the reported type does not match the requested type" do
+          before { allow(selection_atom).to receive(:name).and_return(:PRIMARY) }
+          it { is_expected.not_to send_message(:send_to).to(selection_notify) }
+        end
+
+        context "when requesting an unsupported target" do
+          before { allow(target_atom).to receive(:name).and_return(:UNSUPPORTED) }
+          before { allow(XlibObj::Event::SelectionNotify).to receive(:new).with(type: :selection_atom_id,
+              target: :target_atom_id, property: Xlib::None).and_return(selection_notify) }
+          it { is_expected.to send_message(:send_to).to(selection_notify).with(requestor) }
+        end
+
+        context "when requesting target :TARGETS" do
+          before { allow(target_atom).to receive(:name).and_return(:TARGETS) }
+          before { allow(XlibObj::Atom).to receive(:new).with(display, :UTF8_STRING).and_return(:utf8_string_atom) }
+          before { allow(XlibObj::Atom).to receive(:new).with(display, :TARGETS).and_return(:targets_atom) }
+          it { is_expected.to send_message(:set_property).to(requestor).with(:property_atom_id,
+              [:utf8_string_atom, :targets_atom]) }
+          it { is_expected.to send_message(:send_to).to(selection_notify).with(requestor) }
+        end
+
+        context "when requesting a supported target" do
+          before { allow(target_atom).to receive(:name).and_return(:UTF8_STRING) }
+          it { is_expected.to send_message(:call).to(callback).with(:UTF8_STRING).and_return('selection') }
+          it { is_expected.to send_message(:send_to).to(selection_notify).with(requestor) }
         end
       end
     end

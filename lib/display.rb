@@ -49,9 +49,13 @@ module XlibObj
       handle_event(next_event) while pending_events > 0
     end
 
-    def clipboard(type = :CLIPBOARD, &on_receive)
-      @internal_window ||= screen.root_window.create_window
-      @internal_window.request_selection(type: type, &on_receive)
+    def selection(*args, &on_receive)
+      internal_window.request_selection(*args, &on_receive)
+      self
+    end
+
+    def set_selection(*args, &on_request)
+      internal_window.set_selection(*args, &on_request)
       self
     end
 
@@ -84,6 +88,10 @@ module XlibObj
 
     private
 
+    def internal_window
+      @internal_window ||= screen.root_window.create_window
+    end
+
     def pending_events
       Xlib.XPending(to_native)
     end
@@ -95,7 +103,7 @@ module XlibObj
     end
 
     def handle_event(event)
-      handling_window_id = event.event || event.parent || event.window || event.requestor
+      handling_window_id = event.event || event.parent || event.window || event.owner || event.requestor
       handling_window = Window.new(self, handling_window_id)
       handling_window.handle(event)
     end
