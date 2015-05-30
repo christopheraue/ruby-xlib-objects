@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name          = 'xlib-objects'
-  s.version       = '0.4.0'
+  s.version       = '0.5.0'
   s.license       = 'MIT'
 
   s.summary       = 'A light object wrapper around xlib'
