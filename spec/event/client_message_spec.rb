@@ -17,13 +17,13 @@ describe XlibObj::Event::ClientMessage do
     before { allow(XlibObj::Atom).to receive(:new).with(display, :message_type).and_return(
         double(to_native: :message_type_atom_id)) }
     before { allow(Xlib).to receive(:XSendEvent) }
-    before { allow(Xlib).to receive(:XFlush) }
+    before { allow(display).to receive(:flush) }
 
     it { is_expected.to send_message(:[]=).to(client_event).with(:type, 33) }
     it { is_expected.to send_message(:[]=).to(client_event).with(:message_type, :message_type_atom_id) }
     it { is_expected.to send_message(:XSendEvent).to(Xlib).with(:display_ptr, :receiver_win_id,
         false, event_mask, :event_ptr) }
-    it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+    it { is_expected.to send_message(:flush).to(display) }
 
     context "when no type is given" do
       before { instance.type = nil }

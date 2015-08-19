@@ -86,6 +86,11 @@ module XlibObj
       Xlib.XSetIOErrorHandler(@io_error_handler)
     end
 
+    def flush
+      Xlib.XFlush(to_native)
+      handle_events
+    end
+
     private
 
     def internal_window

@@ -22,7 +22,7 @@ module XlibObj
         @receiver = receiver
         Xlib.XSendEvent(@receiver.display.to_native, @receiver.to_native, false,
           Xlib::SubstructureNotifyMask | Xlib::SubstructureRedirectMask, to_native)
-        Xlib.XFlush(@receiver.display.to_native)
+        @receiver.display.flush
       end
 
       private

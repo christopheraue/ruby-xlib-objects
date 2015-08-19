@@ -69,7 +69,7 @@ module XlibObj
           @window.display.to_native, @window.to_native, @atom.to_native,
           Atom.new(@window.display, item_type).to_native, item_width,
           Xlib::PropModeReplace, bytes, item_count)
-        Xlib.XFlush(@window.display.to_native)
+        @window.display.flush
         self
       end
 

@@ -68,37 +68,37 @@ module XlibObj
 
     def move_resize(x, y, width, height)
       Xlib.XMoveResizeWindow(@display.to_native, @to_native, x, y, width, height)
-      Xlib.XFlush(@display.to_native)
+      @display.flush
       self
     end
 
     def map
       Xlib.XMapWindow(@display.to_native, @to_native)
-      Xlib.XFlush(@display.to_native)
+      @display.flush
       self
     end
 
     def unmap
       Xlib.XUnmapWindow(@display.to_native, @to_native)
-      Xlib.XFlush(@display.to_native)
+      @display.flush
       self
     end
 
     def iconify
       Xlib.XIconifyWindow(@display.to_native, @to_native, screen.number)
-      Xlib.XFlush(@display.to_native)
+      @display.flush
       self
     end
 
     def raise
       Xlib.XRaiseWindow(@display.to_native, @to_native)
-      Xlib.XFlush(@display.to_native)
+      @display.flush
       self
     end
 
     def focus
       Xlib.XSetInputFocus(@display.to_native, @to_native, Xlib::RevertToParent, Xlib::CurrentTime)
-      Xlib.XFlush(@display.to_native)
+      @display.flush
       self
     end
 
@@ -155,7 +155,7 @@ module XlibObj
       property_atom = Atom.new(@display, property)
       Xlib.XConvertSelection(@display.to_native, type_atom.to_native, target_atom.to_native,
         property_atom.to_native, @to_native, Xlib::CurrentTime)
-      Xlib.XFlush(@display.to_native)
+      @display.flush
 
       self
     end

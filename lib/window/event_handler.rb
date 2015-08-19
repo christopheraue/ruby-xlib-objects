@@ -119,7 +119,7 @@ module XlibObj
       def select_events
         Xlib.XSelectInput(@display.to_native, @window_id, @event_mask)
         Xlib.XRRSelectInput(@display.to_native, @window_id, @rr_event_mask)
-        Xlib.XFlush(@display.to_native)
+        @display.flush
       end
     end
   end

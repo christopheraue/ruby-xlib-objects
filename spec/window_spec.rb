@@ -133,11 +133,11 @@ describe XlibObj::Window do
       subject { instance.move_resize(:x, :y, :width, :height) }
 
       before { allow(Xlib).to receive(:XMoveResizeWindow) }
-      before { allow(Xlib).to receive(:XFlush) }
+      before { allow(display).to receive(:flush) }
 
       it { is_expected.to send_message(:XMoveResizeWindow).to(Xlib).
         with(:display_ptr, :win_id, :x, :y, :width, :height) }
-      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to send_message(:flush).to(display) }
       it { is_expected.to be(instance) }
     end
 
@@ -145,11 +145,11 @@ describe XlibObj::Window do
       subject { instance.map }
 
       before { allow(Xlib).to receive(:XMapWindow) }
-      before { allow(Xlib).to receive(:XFlush) }
+      before { allow(display).to receive(:flush) }
 
       it { is_expected.to send_message(:XMapWindow).to(Xlib).with(:display_ptr,
         :win_id) }
-      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to send_message(:flush).to(display) }
       it { is_expected.to be(instance) }
     end
 
@@ -157,11 +157,11 @@ describe XlibObj::Window do
       subject { instance.unmap }
 
       before { allow(Xlib).to receive(:XUnmapWindow) }
-      before { allow(Xlib).to receive(:XFlush) }
+      before { allow(display).to receive(:flush) }
 
       it { is_expected.to send_message(:XUnmapWindow).to(Xlib).with(
         :display_ptr, :win_id) }
-      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to send_message(:flush).to(display) }
       it { is_expected.to be(instance) }
     end
 
@@ -169,13 +169,13 @@ describe XlibObj::Window do
       subject { instance.iconify }
 
       before { allow(Xlib).to receive(:XIconifyWindow) }
-      before { allow(Xlib).to receive(:XFlush) }
+      before { allow(display).to receive(:flush) }
       before { allow(instance).to receive_message_chain(:screen, :number).
         and_return(:screen_number) }
 
       it { is_expected.to send_message(:XIconifyWindow).to(Xlib).with(
         :display_ptr, :win_id, :screen_number) }
-      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to send_message(:flush).to(display) }
       it { is_expected.to be(instance) }
     end
 
@@ -183,11 +183,11 @@ describe XlibObj::Window do
       subject { instance.raise }
 
       before { allow(Xlib).to receive(:XRaiseWindow) }
-      before { allow(Xlib).to receive(:XFlush) }
+      before { allow(display).to receive(:flush) }
 
       it { is_expected.to send_message(:XRaiseWindow).to(Xlib).with(
           :display_ptr, :win_id) }
-      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to send_message(:flush).to(display) }
       it { is_expected.to be(instance) }
     end
 
@@ -195,11 +195,11 @@ describe XlibObj::Window do
       subject { instance.focus }
 
       before { allow(Xlib).to receive(:XSetInputFocus) }
-      before { allow(Xlib).to receive(:XFlush) }
+      before { allow(display).to receive(:flush) }
 
       it { is_expected.to send_message(:XSetInputFocus).to(Xlib).with(:display_ptr, :win_id,
           Xlib::RevertToParent, Xlib::CurrentTime) }
-      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to send_message(:flush).to(display) }
       it { is_expected.to be(instance) }
     end
 
@@ -268,13 +268,13 @@ describe XlibObj::Window do
       before { allow(XlibObj::Atom).to receive(:new).with(display, :UTF8_STRING).and_return(format_atom) }
       before { allow(XlibObj::Atom).to receive(:new).with(display, :XSEL_DATA).and_return(property_atom) }
       before { allow(Xlib).to receive(:XConvertSelection) }
-      before { allow(Xlib).to receive(:XFlush) }
+      before { allow(display).to receive(:flush) }
 
       it { is_expected.to send_message(:until_true).to(instance).with(:no_event, :selection_notify).
           with_block }
       it { is_expected.to send_message(:XConvertSelection).to(Xlib).with(:display_ptr, :type_atom,
         :format_atom, :property_atom, :win_id, Xlib::CurrentTime) }
-      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to send_message(:flush).to(display) }
       it { is_expected.to be instance }
 
       context "when the clipboard content is ready" do

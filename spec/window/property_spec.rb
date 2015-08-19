@@ -150,11 +150,11 @@ describe XlibObj::Window::Property do
       let(:item_type) { :UTF8_STRING }
 
       before { allow(Xlib).to receive(:XChangeProperty) }
-      before { allow(Xlib).to receive(:XFlush) }
+      before { allow(display).to receive(:flush) }
       before { allow(XlibObj::Atom).to receive(:new).with(display, item_type) do |_, item_type|
         instance_double(XlibObj::Atom, to_native: :"#{item_type}_atom_id")        end }
 
-      it { is_expected.to send_message(:XFlush).to(Xlib).with(:display_ptr) }
+      it { is_expected.to send_message(:flush).to(display) }
       it { is_expected.to be instance }
 
       context "when an array of integers is given" do
