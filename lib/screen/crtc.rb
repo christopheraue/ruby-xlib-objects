@@ -9,13 +9,15 @@
 module XlibObj
   class Screen
     class Crtc
+      class << self
+        def finalize(attributes)
+          proc{ Xlib.XRRFreeCrtcInfo(attributes.pointer) }
+        end
+      end
+
       def initialize(screen, id)
         @screen = screen
         @id = id
-
-        ObjectSpace.define_finalizer(self) do
-          Xlib.XRRFreeCrtcInfo(@attributes.pointer) if @attributes
-        end
       end
 
       attr_reader :screen, :id
@@ -45,6 +47,7 @@ module XlibObj
           crtc_info_ptr = Xlib.XRRGetCrtcInfo(@screen.display.to_native,
             screen_resources_ptr, @id)
           @attributes = Xlib::XRRCrtcInfo.new(crtc_info_ptr)
+          ObjectSpace.define_finalizer(self, self.class.finalize(@attributes))
           Xlib.XRRFreeScreenResources(screen_resources_ptr)
         end
 
