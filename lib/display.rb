@@ -34,7 +34,7 @@ module XlibObj
     end
 
     def socket
-      UNIXSocket.for_fd(Xlib.XConnectionNumber(to_native))
+      @socket ||= UNIXSocket.for_fd(Xlib.XConnectionNumber(to_native))
     end
 
     def screens
