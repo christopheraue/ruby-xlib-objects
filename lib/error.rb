@@ -35,6 +35,7 @@ module XlibObj
       ((code >= 128) ? " #{minor_code_description}\n" : "") <<
       " #{resource_description}"
     end
+    alias_method :message, :description
 
     def general_description
       type_size = 2**16
