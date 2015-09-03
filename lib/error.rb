@@ -7,7 +7,7 @@
 #
 
 module XlibObj
-  class Error
+  class Error < StandardError
     def initialize(display, error)
       @display = display
       @error = error
