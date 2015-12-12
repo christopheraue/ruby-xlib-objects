@@ -41,6 +41,21 @@ module XlibObj
       (0..@struct[:nscreens]-1).map{ |number| screen(number) }
     end
 
+    def extensions
+      @extensions ||= Xlib::X.list_extensions(self).map do |name|
+        Extension.new(self, name)
+      end
+    end
+
+    def input_devices
+      device_infos = Xlib::XI.query_device(self, Xlib::XIAllDevices)
+      device_ids = device_infos.map{ |dev| dev[:deviceid] }
+      Xlib.XIFreeDeviceInfo(device_infos.first.pointer)
+      device_ids.map do |device_id|
+        InputDevice.new(self, device_id)
+      end
+    end
+
     def focused_window
       screens.reduce(nil){ |focused_window, s| focused_window or s.focused_window }
     end
