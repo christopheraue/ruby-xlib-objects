@@ -7,18 +7,8 @@
 #
 
 require 'xlib'
+require 'xlib/xinput2'
 
 module XlibObj; end
 
-require_relative 'atom'
-require_relative 'display'
-require_relative 'event'
-require_relative 'error'
-require_relative 'event/client_message'
-require_relative 'event/selection_notify'
-require_relative 'screen'
-require_relative 'screen/crtc'
-require_relative 'screen/crtc/output'
-require_relative 'window'
-require_relative 'window/property'
-require_relative 'window/event_handler'
+Dir['./lib/**/*.rb'].sort.each { |f| require f }
