@@ -49,5 +49,9 @@ module Xlib
     def pending(display)
       Xlib.XPending(display.to_native)
     end
+
+    def flush(display)
+      Xlib.XFlush(display.to_native)
+    end
   end
 end

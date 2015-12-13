@@ -66,9 +66,7 @@ module XlibObj
     end
 
     def ungrab
-      Xlib::XI.ungrab_device(@display, self, Xlib::CurrentTime).tap do
-        @display.flush
-      end
+      Xlib::XI.ungrab_device(@display, self, Xlib::CurrentTime)
     end
 
     private

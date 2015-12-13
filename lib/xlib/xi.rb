@@ -31,7 +31,9 @@ module Xlib
       end
 
       def ungrab_device(display, device, time)
-        0 == Xlib::XIUngrabDevice(display.to_native, device.to_native, time)
+        0 == Xlib::XIUngrabDevice(display.to_native, device.to_native, time).tap do
+          Xlib::X.flush(display)
+        end
       end
 
       def free_device_info(device_info)
