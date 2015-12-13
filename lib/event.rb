@@ -2,37 +2,6 @@
 
 module XlibObj
   class Event
-    class << self
-      def extension_events
-        XlibObj::Extension.constants(false).map do |const|
-          ext_class = XlibObj::Extension.const_get(const)
-          ext_class::Event if ext_class.const_defined?(:Event)
-        end.compact
-      end
-
-      def types
-        extension_events.map do |event|
-          if event.const_defined?(:SUBTYPES)
-            event::TYPES.merge(event::SUBTYPES)
-          else
-            event::TYPES
-          end
-        end.reduce(&:merge)
-      end
-
-      def masks
-        extension_events.map{ |event| event::MASKS }.reduce(&:merge)
-      end
-
-      def valid_name?(name)
-        not types[name].nil?
-      end
-
-      def valid_mask?(mask)
-        not masks[mask].nil?
-      end
-    end
-
     def initialize(display, xevent)
       @display = display
       @xevent = xevent

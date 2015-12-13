@@ -31,6 +31,11 @@ module Xlib
       Xlib::XGetEventData(display.to_native, cookie_event.pointer)
     end
 
+    def select_input(display, window, mask)
+      Xlib.XSelectInput(display.to_native, window.to_native, mask)
+      flush(display)
+    end
+
     def next_event(display)
       xevent = Xlib::XEvent.new
       Xlib.XNextEvent(display.to_native, xevent) # blocks

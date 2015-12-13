@@ -20,6 +20,7 @@ module XlibObj
     def initialize(display, name)
       @display = display
       @name = name
+      @event_masks = Hash.new{ |hash, key| hash[key] = Event::Mask.new }
       @attributes = Xlib::X.query_extension(@display, @name) || {}
     end
 
@@ -58,7 +59,27 @@ module XlibObj
     end
 
     def event(xevent)
-      self.class::Event.new(self, xevent)
+      self.class::Event.new(self, xevent) if self.class.const_defined? :Event
+    end
+
+    def select_mask(window, mask)
+      modify_mask(window, :add, mask)
+    end
+
+    def deselect_mask(window, mask)
+      modify_mask(window, :subtract, mask)
+    end
+
+    def handles_event_mask?(mask)
+      !!(self.class::Event::MASKS[mask] if self.class.const_defined?(:Event))
+    end
+
+    private
+
+    def modify_mask(window, modification, mask)
+      bit = self.class::Event::MASKS[mask]
+      bit_mask = @event_masks[window.id].__send__(modification, bit)
+      native_interface.select_input(@display, window, bit_mask)
     end
   end
 end

@@ -7,5 +7,11 @@ module XlibObj
     def last_error
       first_error + Xlib::RRNumberErrors-1
     end
+
+    private
+
+    def native_interface
+      Xlib::XRR
+    end
   end
 end

@@ -9,116 +9,75 @@
 module XlibObj
   class Window
     class EventHandler
+      @instances = {}
+
       class << self
-        def singleton(display, window_id)
-          @handlers ||= {}
-          @handlers[display] ||= {}
-          @handlers[display][window_id] ||= new(display, window_id)
+        def singleton(display, window)
+          @instances[display] ||= {}
+          @instances[display][window.id] ||= new(display, window)
         end
 
-        def remove(display, window_id)
-          @handlers[display].delete(window_id) if @handlers and @handlers[display]
+        def remove(display, window)
+          @instances[display].delete(window.id) if @instances[display]
         end
       end
 
-      def initialize(display, window_id)
+      def initialize(display, window)
         @display = display
-        @window_id = window_id
+        @window = window
         @event_handlers = {}
-        @event_mask = 0
-        @rr_event_mask = 0
       end
+
+      attr_reader :display, :window
 
       def on(mask, event, &handler)
         add_event_mask(mask)
         add_event_handler(mask, event, &handler)
       end
 
-      def off(mask, type, handler = nil)
-        remove_event_handler(mask, type, handler)
+      def off(mask, event, handler = nil)
+        remove_event_handler(mask, event, handler)
         remove_event_mask(mask)
       end
 
       def handle(event)
-        if @event_handlers[event.name]
-          @event_handlers[event.name].each do |_, handlers|
-            handlers.each{ |handler| handler.call(event) }
-          end
-          true
-        else
-          false
+        @event_handlers.each do |mask, handlers|
+          next unless handlers[event.name]
+          handlers[event.name].each{ |handler| handler.call(event) }
         end
       end
 
       def destroy
-        self.class.remove(@display, @window_id)
+        self.class.remove(@display, @window)
       end
 
       private
 
       def add_event_mask(mask)
-        check_mask(mask)
-        return if mask_in_use?(mask)
-        @event_mask    |= normalize_mask(mask)
-        @rr_event_mask |= normalize_rr_mask(mask)
-        select_events
+        return if @event_handlers[mask]
+
+        @event_handlers[mask] = {}
+        extension = @display.extensions.find{ |ext| ext.handles_event_mask?(mask) }
+        extension.select_mask(@window, mask)
       end
 
       def remove_event_mask(mask)
-        check_mask(mask)
-        return if mask_in_use?(mask)
-        return unless mask_selected?(mask)
-        @event_mask    &= ~normalize_mask(mask)
-        @rr_event_mask &= ~normalize_rr_mask(mask)
-        select_events
+        return unless @event_handlers[mask].empty?
+
+        extension = @display.extensions.find{ |ext| ext.handles_event_mask?(mask) }
+        extension.deselect_mask(@window, mask)
+        @event_handlers.delete(mask)
       end
 
       def add_event_handler(mask, event, &handler)
-        check_event(event)
-        @event_handlers[event] ||= {}
-        @event_handlers[event][mask] ||= []
-        @event_handlers[event][mask] << handler
+        @event_handlers[mask][event] ||= []
+        @event_handlers[mask][event] << handler
         handler
       end
 
       def remove_event_handler(mask, event, handler)
-        check_event(event)
-        return unless mask_in_use?(mask)
-        return unless @event_handlers[event]
-        @event_handlers[event][mask].delete(handler) if handler
-        @event_handlers[event].delete(mask) if @event_handlers[event][mask].empty? or handler.nil?
-        @event_handlers.delete(event) if @event_handlers[event].empty?
-      end
-
-      def mask_in_use?(mask)
-        @event_handlers.select{ |_, handlers| handlers.has_key?(mask) }.any?
-      end
-
-      def mask_selected?(mask)
-        (@event_mask & ~normalize_mask(mask) != @event_mask) or
-          (@rr_event_mask & ~normalize_rr_mask(mask) != @rr_event_mask)
-      end
-
-      def check_event(event)
-        XlibObj::Event.valid_name?(event) or raise("Unknown event #{event}.")
-      end
-
-      def check_mask(mask)
-        XlibObj::Event.valid_mask?(mask) or raise("Unknown event mask #{mask}.")
-      end
-
-      def normalize_mask(mask)
-        XlibObj::Extension::Core::Event::MASKS[mask] || 0
-      end
-
-      def normalize_rr_mask(mask)
-        XlibObj::Extension::XRR::Event::MASKS[mask] || 0
-      end
-
-      def select_events
-        Xlib.XSelectInput(@display.to_native, @window_id, @event_mask)
-        Xlib.XRRSelectInput(@display.to_native, @window_id, @rr_event_mask)
-        @display.flush
+        @event_handlers[mask][event].delete(handler)
+        @event_handlers[mask].delete(event) if @event_handlers[mask][event].empty?
       end
     end
   end

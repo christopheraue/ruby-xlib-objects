@@ -57,14 +57,7 @@ module XlibObj
         focus_change:             Xlib::FocusChangeMask,
         property_change:          Xlib::PropertyChangeMask,
         colormap_change:          Xlib::ColormapChangeMask,
-        owner_grab_button:        Xlib::OwnerGrabButtonMask,
-        screen_change_notify:     Xlib::RRScreenChangeNotifyMask,
-        crtc_change_notify:       Xlib::RRCrtcChangeNotifyMask,
-        output_change_notify:     Xlib::RROutputChangeNotifyMask,
-        output_property_notify:   Xlib::RROutputPropertyNotifyMask,
-        provider_change_notify:   Xlib::RRProviderChangeNotifyMask,
-        provider_property_notify: Xlib::RRProviderPropertyNotifyMask,
-        resource_change_notify:   Xlib::RRResourceChangeNotifyMask
+        owner_grab_button:        Xlib::OwnerGrabButtonMask
       }
 
       TYPES = {

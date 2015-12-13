@@ -1,12 +1,5 @@
 module XlibObj
   class Extension::Core < Extension
-    def initialize(display, name)
-      @display = display
-      @name = name
-    end
-
-    attr_reader :display, :name
-
     def exists?
       true
     end
@@ -15,12 +8,26 @@ module XlibObj
       0..127
     end
 
-    def event_range
-      2..Xlib::LASTEvent-1
+    def first_event
+      2
     end
 
-    def error_range
-      0..127
+    def last_event
+      Xlib::LASTEvent-1
+    end
+
+    def first_error
+      0
+    end
+
+    def last_error
+      127
+    end
+
+    private
+
+    def native_interface
+      Xlib::X
     end
   end
 end
