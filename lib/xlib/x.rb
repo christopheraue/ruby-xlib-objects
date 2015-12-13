@@ -1,6 +1,12 @@
 module Xlib
   module X; end
   class << X
+    def open_display(name)
+      display_pointer = Xlib.XOpenDisplay(name)
+      raise ArgumentError, "Unknown display #{name}" if display_pointer.null?
+      Xlib::Display.new(display_pointer)
+    end
+
     def list_extensions(display)
       nextensions_ptr = FFI::MemoryPointer.new :pointer
       extensions_ptr = Xlib.XListExtensions(display.to_native, nextensions_ptr)
@@ -23,6 +29,16 @@ module Xlib
 
     def get_event_data(display, cookie_event)
       Xlib::XGetEventData(display.to_native, cookie_event.pointer)
+    end
+
+    def next_event(display)
+      xevent = Xlib::XEvent.new
+      Xlib.XNextEvent(display.to_native, xevent) # blocks
+      xevent
+    end
+
+    def pending(display)
+      Xlib.XPending(display.to_native)
     end
   end
 end

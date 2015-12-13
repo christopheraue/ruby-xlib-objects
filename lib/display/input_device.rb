@@ -6,8 +6,8 @@
 # distribution and at http://github.com/christopheraue/ruby-xlib-objects.
 #
 
-module XlibObj::Display
-  class InputDevice
+module XlibObj
+  class Display::InputDevice
     def initialize(display, device_id)
       @display = display
       @device_id = device_id

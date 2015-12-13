@@ -55,6 +55,7 @@ module XlibObj
       end
 
       private
+
       def add_event_mask(mask)
         check_mask(mask)
         return if mask_in_use?(mask)
@@ -98,22 +99,20 @@ module XlibObj
           (@rr_event_mask & ~normalize_rr_mask(mask) != @rr_event_mask)
       end
 
+      def check_event(event)
+        XlibObj::Event.valid_name?(event) or raise("Unknown event #{event}.")
+      end
+
       def check_mask(mask)
-        if XlibObj::Event::MASK[mask].nil? && XlibObj::Event::RR_MASK[mask].nil?
-          raise("Unknown event mask #{mask}.")
-        end
+        XlibObj::Event.valid_mask?(mask) or raise("Unknown event mask #{mask}.")
       end
 
       def normalize_mask(mask)
-        XlibObj::Event::MASK[mask] || 0
+        XlibObj::Extension::Core::Event::MASKS[mask] || 0
       end
 
       def normalize_rr_mask(mask)
-        XlibObj::Event::RR_MASK[mask] || 0
-      end
-
-      def check_event(event)
-        XlibObj::Event.valid_name?(event) || raise("Unknown event #{event}.")
+        XlibObj::Extension::XRR::Event::MASKS[mask] || 0
       end
 
       def select_events

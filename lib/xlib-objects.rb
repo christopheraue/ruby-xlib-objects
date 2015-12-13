@@ -11,4 +11,7 @@ require 'xlib/xinput2'
 
 module XlibObj; end
 
-Dir['./lib/**/*.rb'].sort.each { |f| require f }
+lib_dir = File.dirname __FILE__
+lib_files = File.join(lib_dir, '**/*.rb')
+
+Dir[lib_files].sort.each { |f| require f }

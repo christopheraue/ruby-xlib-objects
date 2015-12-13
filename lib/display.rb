@@ -20,9 +20,7 @@ module XlibObj
     end
 
     def initialize(name)
-      display_pointer = Xlib.XOpenDisplay(name)
-      raise ArgumentError, "Unknown display #{name}" if display_pointer.null?
-      @struct = Xlib::Display.new(display_pointer)
+      @struct = Xlib::X.open_display(name)
     end
 
     def to_native
@@ -42,15 +40,15 @@ module XlibObj
     end
 
     def extensions
-      @extensions ||= Xlib::X.list_extensions(self).map do |name|
-        Extension.new(self, name)
+      @extensions ||= ['CORE', *Xlib::X.list_extensions(self)].map do |name|
+        Extension.for(self, name)
       end
     end
 
     def input_devices
       device_infos = Xlib::XI.query_device(self, Xlib::XIAllDevices)
       device_ids = device_infos.map{ |dev| dev[:deviceid] }
-      Xlib.XIFreeDeviceInfo(device_infos.first.pointer)
+      Xlib::XI.free_device_info(device_infos.first)
       device_ids.map do |device_id|
         InputDevice.new(self, device_id)
       end
@@ -61,7 +59,10 @@ module XlibObj
     end
 
     def handle_events
-      handle_event(next_event) while pending_events > 0
+      while Xlib::X.pending(self) > 0
+        xevent = Xlib::X.next_event(self)
+        Event.new(self, xevent).extension_event.handle
+      end
     end
 
     def selection(*args, &on_receive)
@@ -102,30 +103,13 @@ module XlibObj
     end
 
     def flush
-      Xlib.XFlush(to_native)
-      handle_events
+      handle_events # XPending flushes the output buffer: http://tronche.com/gui/x/xlib/event-handling/XFlush.html
     end
 
     private
 
     def internal_window
       @internal_window ||= screen.root_window.create_window
-    end
-
-    def pending_events
-      Xlib.XPending(to_native)
-    end
-
-    def next_event
-      x_event = Xlib::XEvent.new
-      Xlib.XNextEvent(to_native, x_event) # blocks
-      Event.new(x_event)
-    end
-
-    def handle_event(event)
-      handling_window_id = event.event || event.parent || event.window || event.owner || event.requestor
-      handling_window = Window.new(self, handling_window_id)
-      handling_window.handle(event)
     end
 
     def screen_pointer(number)
