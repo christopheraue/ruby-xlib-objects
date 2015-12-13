@@ -106,6 +106,10 @@ module XlibObj
       handle_events # XPending flushes the output buffer: http://tronche.com/gui/x/xlib/event-handling/XFlush.html
     end
 
+    def close
+      Xlib::X.close_display(self)
+    end
+
     private
 
     def internal_window

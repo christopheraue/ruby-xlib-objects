@@ -7,6 +7,10 @@ module Xlib
       Xlib::Display.new(display_pointer)
     end
 
+    def close_display(display)
+      Xlib.XCloseDisplay(display.to_native)
+    end
+
     def list_extensions(display)
       nextensions_ptr = FFI::MemoryPointer.new :pointer
       extensions_ptr = Xlib.XListExtensions(display.to_native, nextensions_ptr)
