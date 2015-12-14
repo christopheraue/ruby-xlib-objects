@@ -15,7 +15,7 @@ module XlibObj
 
         type_struct = TYPE_TO_STRUCT[@xrr_type].new(event.pointer)
 
-        @struct ||= if type_struct.members.include?(:subtype)
+        @struct = if type_struct.members.include?(:subtype)
           SUBTYPE_TO_STRUCT[type_struct[:subtype]].new(event.pointer)
         else
           type_struct

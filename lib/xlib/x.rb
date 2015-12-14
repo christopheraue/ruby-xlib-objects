@@ -31,8 +31,8 @@ module Xlib
       end
     end
 
-    def get_event_data(display, cookie_event)
-      Xlib::XGetEventData(display.to_native, cookie_event.pointer)
+    def get_event_data(display, event_cookie)
+      Xlib::XGetEventData(display.to_native, event_cookie.pointer)
     end
 
     def select_input(display, window, mask)

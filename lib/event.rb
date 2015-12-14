@@ -1,5 +1,3 @@
-
-
 module XlibObj
   class Event
     def initialize(display, xevent)
@@ -17,8 +15,8 @@ module XlibObj
       type == Xlib::GenericEvent
     end
 
-    def cookie?
-      @is_cookie ||= generic? and Xlib::X.get_event_data(@display, cookie)
+    def data?
+      @is_cookie ||= generic? && Xlib::X.get_event_data(@display, cookie)
     end
 
     def cookie
@@ -26,17 +24,17 @@ module XlibObj
     end
 
     def opcode
-      cookie? and @event.cookie[:extension]
+      (data? and cookie[:extension])
     end
 
     def extension
       @extension ||= @display.extensions.find do |ext|
-        opcode == ext.opcode or ext.event_range.include?(type)
+        data? ? opcode == ext.opcode : ext.event_range.include?(type)
       end
     end
 
     def extension_event
-      extension.event(@xevent)
+      extension.event(data? ? cookie : xevent)
     end
   end
 end

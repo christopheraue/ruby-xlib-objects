@@ -12,6 +12,11 @@ module Xlib
         end
       end
 
+      def free_device_info(device_info)
+        Xlib.XIFreeDeviceInfo(device_info.pointer)
+        true
+      end
+
       def set_focus(display, device, window, time)
         0 == Xlib::XISetFocus(display.to_native, device.to_native, window.to_native, time)
       end
@@ -36,9 +41,11 @@ module Xlib
         end
       end
 
-      def free_device_info(device_info)
-        Xlib.XIFreeDeviceInfo(device_info.pointer)
-        true
+      def select_input(display, window, event_mask)
+        event_mask = EventMask.new(Xlib::XIAllDevices, event_mask)
+        puts "xi select events #{event_mask.mask.to_s(2)} for win #{window.to_native}"
+        Xlib.XISelectEvents(display.to_native, window.to_native, event_mask.to_native, 1)
+        Xlib::X.flush(display)
       end
     end
   end

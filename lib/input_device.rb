@@ -7,7 +7,7 @@
 #
 
 module XlibObj
-  class Display::InputDevice
+  class InputDevice
     def initialize(display, device_id)
       @display = display
       @device_id = device_id

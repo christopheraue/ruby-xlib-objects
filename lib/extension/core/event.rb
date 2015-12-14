@@ -24,7 +24,7 @@ module XlibObj
       end
 
       def name
-        self.class::TYPES.key(type)
+        TYPES.key(type)
       end
 
       def method_missing(name)

@@ -6,6 +6,8 @@ module Xlib
         @mask = mask
       end
 
+      attr_reader :device, :mask
+
       def struct
         @struct ||= begin
           byte_length = (@mask.bit_length/8.0).ceil
@@ -13,7 +15,7 @@ module Xlib
           mask_ptr.write_int @mask
 
           Xlib::XIEventMask.new.tap do |event_mask|
-            event_mask[:deviceid] = @device.id
+            event_mask[:deviceid] = @device.is_a?(XlibObj::InputDevice) ? @device.id : @device
             event_mask[:mask_len] = FFI.type_size(:int)
             event_mask[:mask] = mask_ptr
           end
