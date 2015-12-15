@@ -79,7 +79,7 @@ module XlibObj
     def modify_mask(window, modification, mask)
       bit = self.class::Event::MASKS[mask]
       bit_mask = @event_masks[window.id].__send__(modification, bit)
-      native_interface.select_input(@display, window, bit_mask)
+      select_input(@display, window, bit_mask)
     end
   end
 end

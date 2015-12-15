@@ -10,8 +10,8 @@ module XlibObj
 
     private
 
-    def native_interface
-      Xlib::XRR
+    def select_input(display, window, bit_mask)
+      Xlib::XRR.select_input(display, window, bit_mask)
     end
   end
 end

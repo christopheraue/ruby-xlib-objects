@@ -26,8 +26,8 @@ module XlibObj
 
     private
 
-    def native_interface
-      Xlib::X
+    def select_input(display, window, bit_mask)
+      Xlib::X.select_input(display, window, bit_mask)
     end
   end
 end

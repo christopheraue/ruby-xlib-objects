@@ -22,10 +22,16 @@ module Xlib
       end
 
       def get_focus(display, device)
-        window_id_ptr = FFI::MemoryPointer.new :int
+        window_id_ptr = FFI::MemoryPointer.new :Window
         if 0 == Xlib::XIGetFocus(display.to_native, device.to_native, window_id_ptr)
-          window_id = window_id_ptr.read_int
-          Window.new(display, window_id)
+          case window_id = window_id_ptr.read_int
+          when Xlib::PointerRoot
+            display.screens.first.root_window
+          when Xlib::None
+            nil
+          else
+            XlibObj::Window.new(display, window_id)
+          end
         end
       end
 
@@ -41,11 +47,11 @@ module Xlib
         end
       end
 
-      def select_input(display, window, event_mask)
-        event_mask = EventMask.new(Xlib::XIAllDevices, event_mask)
-        puts "xi select events #{event_mask.mask.to_s(2)} for win #{window.to_native}"
+      def select_events(display, device, window, event_mask)
+        event_mask = EventMask.new(device, event_mask)
         Xlib.XISelectEvents(display.to_native, window.to_native, event_mask.to_native, 1)
         Xlib::X.flush(display)
+        true
       end
     end
   end

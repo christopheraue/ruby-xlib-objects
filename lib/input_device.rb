@@ -21,7 +21,7 @@ module XlibObj
     alias_method :id, :to_native
 
     def name
-      device_info(:name).read_string
+      device_info(:name, &:read_string)
     end
 
     def master?
@@ -34,6 +34,14 @@ module XlibObj
 
     def floating?
       device_info(:use) == Xlib::XIFloatingSlave
+    end
+
+    def pointer?
+      [Xlib::XIMasterPointer, Xlib::XISlavePointer].include? device_info(:use)
+    end
+
+    def keyboard?
+      [Xlib::XIMasterKeyboard, Xlib::XISlaveKeyboard].include? device_info(:use)
     end
 
     def master
@@ -57,7 +65,7 @@ module XlibObj
     end
 
     def focused_window
-      Xlib::XI.get_focus(@display, self)
+      Xlib::XI.get_focus(@display, self) if keyboard?
     end
 
     def grab(report_to:, cursor: Xlib::None, mode: Xlib::GrabModeAsync, pair_mode: Xlib::GrabModeAsync,
@@ -71,9 +79,9 @@ module XlibObj
 
     private
 
-    def device_info(member)
+    def device_info(member, &do_with_member)
       device_info = Xlib::XI.query_device(@display, @device_id).first
-      device_info[member]
+      do_with_member ? yield(device_info[member]) : device_info[member]
     ensure
       Xlib::XI.free_device_info(device_info)
     end
