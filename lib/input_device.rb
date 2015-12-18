@@ -60,12 +60,12 @@ module XlibObj
       not enabled?
     end
 
-    def focused_window=(window)
-      Xlib::XI.set_focus(@display, self, window, Xlib::CurrentTime)
-    end
-
-    def focused_window
-      Xlib::XI.get_focus(@display, self) if keyboard?
+    def focus(window = nil)
+      if window
+        Xlib::XI.set_focus(@display, self, window, Xlib::CurrentTime)
+      else
+        Xlib::XI.get_focus(@display, self) if keyboard?
+      end
     end
 
     def grab(report_to:, cursor: Xlib::None, mode: Xlib::GrabModeAsync, pair_mode: Xlib::GrabModeAsync,

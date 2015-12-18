@@ -16,7 +16,7 @@ top_level_windows.each do |window|
 
   window.on(:xi_key_press, :xi_key_press) do |event|
     next if event.deviceid < 4
-    keyboards.sample.focused_window = top_level_windows.sample
+    keyboards.sample.focus(top_level_windows.sample)
   end
 end
 
