@@ -54,6 +54,14 @@ module XlibObj
       end
     end
 
+    def keyboards
+      input_devices.select(&:keyboard?)
+    end
+
+    def pointers
+      input_devices.select(&:pointer?)
+    end
+
     def focused_window
       screens.reduce(nil){ |focused_window, s| focused_window or s.focused_window }
     end
