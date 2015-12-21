@@ -17,6 +17,14 @@ top_level_windows.each do |window|
     property = XlibObj::Atom.new(display, event.atom).name
     puts "window #{event.window} #{property}: #{window.property(property)}"
   end
+
+  window.on(:focus_change, :focus_in) do |event|
+    puts "window #{event.window} gained focus"
+  end
+
+  window.on(:focus_change, :focus_out) do |event|
+    puts "window #{event.window} lost focus"
+  end
 end
 
 loop do
