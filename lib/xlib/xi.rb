@@ -18,7 +18,9 @@ module Xlib
       end
 
       def set_focus(display, device, window, time)
-        0 == Xlib::XISetFocus(display.to_native, device.to_native, window.to_native, time)
+        0 == Xlib::XISetFocus(display.to_native, device.to_native, window.to_native, time).tap do
+          Xlib::X.flush(display)
+        end
       end
 
       def get_focus(display, device)
@@ -47,9 +49,9 @@ module Xlib
         end
       end
 
-      def select_events(display, device, window, event_mask)
-        event_mask = EventMask.new(device, event_mask)
-        Xlib.XISelectEvents(display.to_native, window.to_native, event_mask.to_native, 1)
+      def select_events(display, devices, window, event_mask)
+        event_mask = EventMask.new(devices, event_mask)
+        Xlib.XISelectEvents(display.to_native, window.to_native, event_mask.to_native, devices.size)
         Xlib::X.flush(display)
         true
       end
