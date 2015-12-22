@@ -2,7 +2,7 @@ module Xlib
   module XI
     class EventMask
       def initialize(devices, mask)
-        @devices = devices
+        @devices = [*devices]
         @mask = mask
       end
 

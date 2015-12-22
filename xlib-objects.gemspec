@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_runtime_dependency 'xlib', '~> 1.2'
-  s.add_runtime_dependency 'xlib-xinput2', '~> 0.1'
+  s.add_runtime_dependency 'xlib-xinput2', '~> 1.0'
 
   s.add_development_dependency 'rspec', '~> 3.2.0'
   s.add_development_dependency 'rspec-its', '~> 1.1'
