@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.files         = Dir.glob('lib/**/*.rb')
   s.require_paths = ['lib']
 
-  s.add_runtime_dependency 'xlib', '~> 1.1'
+  s.add_runtime_dependency 'xlib', '~> 1.2'
   s.add_runtime_dependency 'xlib-xinput2', '~> 0.1'
 
   s.add_development_dependency 'rspec', '~> 3.2.0'

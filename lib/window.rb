@@ -206,6 +206,13 @@ module XlibObj
       Window.new(@display, win_id)
     end
 
+    def create_input_window
+      attributes = Xlib::SetWindowAttributes.new
+      win_id = Xlib.XCreateWindow(@display.to_native, to_native, 0, 0, 1, 1, 0, Xlib::CopyFromParent,
+        Xlib::InputOnly, nil, 0, attributes.pointer)
+      Window.new(@display, win_id)
+    end
+
     def destroy
       @event_handler.destroy
       Xlib.XDestroyWindow(@display.to_native, to_native)
