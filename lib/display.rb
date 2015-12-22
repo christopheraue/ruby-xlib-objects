@@ -85,7 +85,7 @@ module XlibObj
 
     def on_error(&callback)
       @error_handler = if callback
-        FFI::Function.new(:pointer, [:pointer, :pointer]) do |display_ptr, error_ptr|
+        FFI::Function.new(:int, [:pointer, :pointer]) do |display_ptr, error_ptr|
           next if display_ptr != to_native
           x_error = Xlib::XErrorEvent.new(error_ptr)
           callback.call Error.new(self, x_error)

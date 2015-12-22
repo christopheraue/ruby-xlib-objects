@@ -10,79 +10,50 @@ module XlibObj
   class Error < StandardError
     def initialize(display, error)
       @display = display
-      @error = error
-    end
-
-    def code
-      @error[:error_code]
-    end
-
-    def minor_code
-      @error[:minor_code]
-    end
-
-    def request
-      @error[:request_code]
-    end
-
-    def resource
-      @error[:resourceid]
+      @error_code = error[:error_code]
+      @request_code = error[:request_code]
+      @minor_code = error[:minor_code]
+      @resource = error[:resourceid]
     end
 
     def description
-      "#{general_description}\n" <<
-      " #{code_description}\n" <<
-      ((code >= 128) ? " #{minor_code_description}\n" : "") <<
-      " #{resource_description}"
+      "#{request_description}\n" <<
+      "Error: #{error_description}\n" <<
+      "Resource: #{resource_description}"
     end
     alias_method :message, :description
 
-    def general_description
-      type_size = 2**16
-      type = FFI::MemoryPointer.new(:char, type_size)
-      Xlib.XGetErrorDatabaseText(@display.to_native, @display.name, 'XError', 'X Error', type,
-        type_size)
-
-      details_size = 2**16
-      details = FFI::MemoryPointer.new(:char, details_size)
-      Xlib.XGetErrorText(@display.to_native, code, details, details_size)
-
-      "#{type.read_string}: #{details.read_string}"
+    def request_description
+      @request_code < 128 ? major_request_description : minor_request_description
     end
 
-    def code_description
-      message_size = 2**16
+    def major_request_description
+      message_size = 256
       message = FFI::MemoryPointer.new(:char, message_size)
-      Xlib.XGetErrorDatabaseText(@display.to_native, @display.name, 'MajorCode',
-        'Request Major code %d', message, message_size)
-      message.read_string.gsub('%d', code.to_s)
+      Xlib.XGetErrorDatabaseText(@display.to_native, 'XRequest', "#{@request_code}",
+        "Major code #{@request_code}", message, message_size)
+      message.read_string
     end
 
-    def minor_code_description
-      message_size = 2**16
+    def minor_request_description
+      message_size = 256
       message = FFI::MemoryPointer.new(:char, message_size)
-      Xlib.XGetErrorDatabaseText(@display.to_native, @display.name, 'MinorCode',
-        'Request Minor code %d', message, message_size)
-      message.read_string.gsub('%d', minor_code.to_s)
+      extension = @display.extensions.find{ |ext| ext.opcode == @request_code }
+      Xlib.XGetErrorDatabaseText(@display.to_native, "XRequest.#{extension.name}", "#{@minor_code}",
+        "Minor code #{@minor_code}", message, message_size)
+      "#{extension.name} #{message.read_string}"
+    end
+
+    def error_description
+      message_size = 256
+      message = FFI::MemoryPointer.new(:char, message_size)
+      Xlib.XGetErrorDatabaseText(@display.to_native, 'XProtoError', "#{@error_code}",
+        "Error code #{@error_code}", message, message_size)
+      message.read_string
     end
 
     def resource_description
-      message_size = 2**16
-      message = FFI::MemoryPointer.new(:char, message_size)
-
-      if [Xlib::BadWindow, Xlib::BadPixmap, Xlib::BadCursor, Xlib::BadFont, Xlib::BadDrawable,
-        Xlib::BadColor, Xlib::BadGC, Xlib::BadIDChoice].include?(code)
-        Xlib.XGetErrorDatabaseText(@display.to_native, @display.name, "ResourceID",
-          "ResourceID %x", message, message_size)
-      elsif code == Xlib::BadValue
-        Xlib.XGetErrorDatabaseText(@display.to_native, @display.name, "Value", "Value 0x%x",
-          message, message_size)
-      elsif code == Xlib::BadAtom
-        Xlib.XGetErrorDatabaseText(@display.to_native, @display.name, "AtomID", "AtomID 0x%x",
-          message, message_size)
-      end
-
-      message.read_string.gsub('%x', resource.to_s)
+      @resource
     end
   end
 end
