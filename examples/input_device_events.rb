@@ -15,5 +15,6 @@ top_level_windows.each do |window|
 end
 
 loop do
+  Kernel.select([display.socket])
   display.handle_events
 end
