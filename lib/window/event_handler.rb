@@ -41,9 +41,11 @@ module XlibObj
       end
 
       def handle(event)
-        @event_handlers.each do |mask, handlers|
+        # duplicate the event handlers hash so it can be modified in one of
+        # its handlers
+        @event_handlers.dup.each do |mask, handlers|
           next unless handlers[event.name]
-          handlers[event.name].each{ |handler| handler.call(event) }
+          handlers[event.name].dup.each{ |handler| handler.call(event) }
         end
       end
 
