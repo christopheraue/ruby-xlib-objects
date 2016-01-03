@@ -13,8 +13,10 @@ module XlibObj
       @error_code = error[:error_code]
       @request_code = error[:request_code]
       @minor_code = error[:minor_code]
-      @resource = error[:resourceid]
+      @resourceid = error[:resourceid]
     end
+
+    attr_reader :error_code, :request_code, :minor_code, :resourceid
 
     def description
       "#{request_description}\n" <<
@@ -53,7 +55,7 @@ module XlibObj
     end
 
     def resource_description
-      @resource
+      @resourceid
     end
   end
 end
