@@ -217,5 +217,9 @@ module XlibObj
       @event_handler.destroy
       Xlib.XDestroyWindow(@display.to_native, to_native)
     end
+
+    def inspect
+      "#<#{self.class.name}:0x#{'%014x' % __id__} @id=#{id}>"
+    end
   end
 end

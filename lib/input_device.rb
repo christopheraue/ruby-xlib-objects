@@ -77,6 +77,10 @@ module XlibObj
       Xlib::XI.ungrab_device(@display, self, Xlib::CurrentTime)
     end
 
+    def inspect
+      "#<#{self.class.name}:0x#{'%014x' % __id__} @id=#{id} @name=#{name.inspect}>"
+    end
+
     private
 
     def device_info(member, &do_with_member)

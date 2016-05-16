@@ -118,6 +118,10 @@ module XlibObj
       Xlib::X.close_display(self)
     end
 
+    def inspect
+      "#<#{self.class.name}:0x#{'%014x' % __id__} @name=#{name.inspect}>"
+    end
+
     private
 
     def internal_window

@@ -65,6 +65,10 @@ module XlibObj
       end
     end
 
+    def inspect
+      "#<#{self.class.name}:0x#{'%014x' % __id__} @number=#{number}>"
+    end
+
     private
 
     def resources
