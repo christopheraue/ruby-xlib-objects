@@ -15,7 +15,8 @@ module XlibObj
 
       def send_to(receiver)
         Xlib.XSendEvent(receiver.display.to_native, receiver.to_native, false, 0, event(receiver))
-        receiver.display.flush
+      ensure
+        Xlib::X.flush(receiver.display)
       end
 
       private
