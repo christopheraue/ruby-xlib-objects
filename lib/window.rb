@@ -214,8 +214,12 @@ module XlibObj
     end
 
     def destroy
-      @event_handler.destroy
+      finalize
       Xlib.XDestroyWindow(@display.to_native, to_native)
+    end
+
+    def finalize
+      @event_handler.destroy
     end
 
     def inspect
