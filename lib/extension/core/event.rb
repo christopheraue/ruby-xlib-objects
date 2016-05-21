@@ -19,7 +19,7 @@ module XlibObj
       end
 
       def handle
-        window_id = event || parent || window || owner || requestor
+        window_id = window || owner || requestor
         Window.new(@extension.display, window_id).handle(self)
       end
 
