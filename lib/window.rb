@@ -58,8 +58,8 @@ module XlibObj
     end
 
     # Commands
-    def set_property(name, value)
-      Property.new(self, name).set(value)
+    def set_property(name, value, type = nil)
+      Property.new(self, name).set(value, type)
     end
 
     def delete_property(name)
