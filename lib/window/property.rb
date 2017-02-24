@@ -150,7 +150,7 @@ module XlibObj
         elsif objects.all? { |o| o.is_a? Atom }
           :ATOM
         elsif objects.all? { |o| o.is_a? Integer }
-          if objects.any? { |o| o <= 0 }
+          if objects.any? { |o| o < 0 }
             :INTEGER
           else
             :CARDINAL
