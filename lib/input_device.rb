@@ -68,7 +68,7 @@ module XlibObj
       end
     end
 
-    def grab(report_to:, cursor: Xlib::None, mode: Xlib::GrabModeAsync, pair_mode: Xlib::GrabModeAsync,
+    def grab(report_to: RequiredArg.new(:report_to), cursor: Xlib::None, mode: Xlib::GrabModeAsync, pair_mode: Xlib::GrabModeAsync,
         owner_events: true, event_mask: 0)
       Xlib::XI.grab_device(@display, self, report_to, Xlib::CurrentTime, cursor, mode, pair_mode, owner_events, event_mask)
     end

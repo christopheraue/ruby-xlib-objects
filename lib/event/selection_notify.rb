@@ -9,7 +9,7 @@
 module XlibObj
   class Event
     class SelectionNotify
-      def initialize(type:, target:, property:)
+      def initialize(type: RequiredArg.new(:type), target: RequiredArg.new(:target), property: RequiredArg.new(:property))
         @type, @target, @property = type, target, property
       end
 
